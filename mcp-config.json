@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "mcp-unity": {
+      "command": "node",
+      "args": [
+        "/Users/macbook/Projects/GameDev/Game/Packages/com.gamelovers.mcp-unity/Server~/build/index.js"
+      ]
+    },
+    "figma-mcp": {
+      "command": "python3",
+      "args": [
+        "/Users/macbook/Projects/GameDev/figma_mcp.py"
+      ]
+    }
+  }
+}

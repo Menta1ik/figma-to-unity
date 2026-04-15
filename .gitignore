@@ -1,0 +1,9 @@
+Library/
+Temp/
+Obj/
+Logs/
+UserSettings/
+MemoryCaptcha/
+.DS_Store
+*.unitypackage
+*.zip
