@@ -1,7 +1,0 @@
-﻿<Solution>
-  <Project Path="Assembly-CSharp.csproj" />
-  <Project Path="McpUnity.Editor.csproj" />
-  <Project Path="Assembly-CSharp-Editor.csproj" />
-  <Project Path="FrontStrike.UI.Core.csproj" />
-  <Project Path="McpUnity.Editor.Tests.csproj" />
-</Solution>
