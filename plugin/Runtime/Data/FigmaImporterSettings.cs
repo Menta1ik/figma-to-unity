@@ -31,6 +31,6 @@ namespace FigmaImporter.V2.Data
 
         [Header("Optimization & Audit")]
         [Tooltip("If true, Font Audit will scan the entire Figma file. If false, it will only scan the selected Node ID.")]
-        public bool auditEntireFile = false;
+        public bool auditEntireFile = false; // Forced update v2.1.1
     }
 }
