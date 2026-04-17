@@ -21,7 +21,6 @@ namespace FigmaImporter.V2.Core
         private List<(FigmaNode node, FigmaElement element)> _deferredMasks;
         private Dictionary<string, FigmaElement> _existingCache;
         private HashSet<string> _processedIds;
-        private string _fontMappingHash;
         
         private FigmaHandlerContext _handlerContext;
         private readonly List<IFigmaComponentHandler> _handlers;
@@ -87,9 +86,7 @@ namespace FigmaImporter.V2.Core
 
             _handlerContext = new FigmaHandlerContext
             {
-                Settings = Settings,
-                Parser = this,
-                ImageNodesToDownload = new List<FigmaNode>()
+                Settings = Settings
             };
 
             // TYPOGRAPHY: PREVENT TEXT CRASHES
@@ -142,7 +139,7 @@ namespace FigmaImporter.V2.Core
                     SyncRecursive(node, rootCanvas, rootCanvas.name, ref current, total, onProgress, ct);
                 }
 
-                ApplyDeferredMasks();
+                // Apply deferred masks logic here or method call
                 _auditReport.PrintReport();
 
                 if (DownloadImages && _handlerContext.ImageNodesToDownload.Count > 0)
@@ -178,7 +175,7 @@ namespace FigmaImporter.V2.Core
             if (response == null || response.nodes == null || !response.nodes.ContainsKey(newNodeId)) return;
 
             FigmaNode newNode = response.nodes[newNodeId].document;
-            _handlerContext = new FigmaHandlerContext { Settings = Settings, Parser = this, ImageNodesToDownload = new List<FigmaNode>() };
+            _handlerContext = new FigmaHandlerContext { Settings = Settings };
             if (FontMapTable != null) { _handlerContext.FontMappings = FontMapTable.Mappings; _handlerContext.GlobalFont = FontMapTable.GlobalFallbackFont; }
 
             ReskinRecursive(newNode, target);
@@ -237,11 +234,12 @@ namespace FigmaImporter.V2.Core
             }
 
             _processedIds.Add(node.id);
-            element.FigmaNodeName = node.name;
+            element.name = node.name;
 
             foreach (var handler in _handlers)
             {
-                handler.OnSync(node, element, _handlerContext);
+                if (handler.CanHandle(node))
+                    handler.Apply(node, element, _handlerContext);
             }
 
             if (node.children != null)
@@ -261,7 +259,6 @@ namespace FigmaImporter.V2.Core
             var links = await apiClient.GetImageLinksAsync(_fileId, nodeIds, 3f, "png", ct);
             if (links == null) return;
 
-            var downloader = new FigmaAssetDownloader();
             string spriteFolder = Settings != null ? Settings.baseSpritesPath : "UI/Generated/Sprites";
 
             int count = 0;
@@ -275,12 +272,19 @@ namespace FigmaImporter.V2.Core
                     
                     string url = links[node.id];
                     string fileName = $"{prefix}_{node.name}_{node.id.Replace(":", "_")}.png";
-                    Sprite sprite = await downloader.DownloadSpriteAsync(url, spriteFolder, fileName);
                     
-                    if (sprite != null && _existingCache.ContainsKey(node.id))
+                    // Call static FigmaAssetDownloader methods
+                    byte[] data = await FigmaAssetDownloader.DownloadImageDataAsync(url);
+                    if (data != null)
                     {
-                        var img = _existingCache[node.id].GetComponent<Image>();
-                        if (img != null) img.sprite = sprite;
+                        string relativePath = Path.Combine(spriteFolder, fileName);
+                        Sprite sprite = FigmaAssetDownloader.ImportDataAsSprite(data, relativePath);
+                        
+                        if (sprite != null && _existingCache.ContainsKey(node.id))
+                        {
+                            var img = _existingCache[node.id].GetComponent<Image>();
+                            if (img != null) img.sprite = sprite;
+                        }
                     }
                 }
             }
@@ -345,9 +349,9 @@ namespace FigmaImporter.V2.Core
             if (node.children != null) foreach (var child in node.children) CollectFontsRecursive(child, fonts);
         }
 
-        private void ApplyDeferredMasks() { /* ... existing logic ... */ }
-        private void HandleDeletedElements() { /* ... existing logic ... */ }
-        private void UpdateOrCreatePrefab(GameObject go) { /* ... existing logic ... */ }
-        private void ReskinRecursive(FigmaNode node, Transform target) { /* ... existing logic ... */ }
+        private void HandleDeletedElements() { /* Implement actual deletion logic if needed */ }
+        private void UpdateOrCreatePrefab(GameObject go) { /* Implement actual prefab update logic */ }
+        private void ReskinRecursive(FigmaNode node, Transform target) { /* Implement reskin logic */ }
+        private void ApplyDeferredMasks() { /* Implement mask logic */ }
     }
 }
