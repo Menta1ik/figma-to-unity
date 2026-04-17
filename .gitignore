@@ -6,10 +6,31 @@ figma_mcp.py
 run_figma.py
 mcp-config.json
 GEMINI.md
-Library/
-Temp/
-Obj/
-Logs/
-UserSettings/
-MemoryCaptcha/
-.DS_Store
+Game/Library/
+Game/Temp/
+Game/Obj/
+Game/Logs/
+# Игнорировать всю папку с игрой-песочницей, чтобы не трекать ассеты
+Game/*
+
+# Исключить из игнора сам плагин (UPM пакет)
+!Game/Packages/
+Game/Packages/*
+!Game/Packages/com.figmaimporter.v2/
+
+# Игнорировать кэш спрайтов внутри плагина, если он там появится
+Game/Packages/com.figmaimporter.v2/Sprites/
+**/node_modules/
+
+# Игнорировать скачанные Фигмой картинки (кэш спрайтов)
+Game/Assets/FigmaImporter/Sprites/
+
+# Игнорировать временные файлы редактора IDE
+Game/.vscode/
+.vscode/
+*.csproj
+*.sln
+*.slnx
+
+# Игнорировать локальные логи и память Антигравити
+.gemini/
