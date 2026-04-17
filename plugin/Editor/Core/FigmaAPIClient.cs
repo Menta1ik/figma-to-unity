@@ -15,6 +15,7 @@ namespace FigmaImporter.V2.Core
         public FigmaAPIClient(string accessToken)
         {
             _accessToken = accessToken?.Trim();
+            if (_accessToken != null) Debug.Log($"<b>[Figma Debug]</b> Token initialized. Length: {_accessToken.Length} chars.");
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("X-Figma-Token", _accessToken);
         }
@@ -24,9 +25,10 @@ namespace FigmaImporter.V2.Core
             string url = $"https://api.figma.com/v1/files/{fileId.Trim()}";
             if (!string.IsNullOrEmpty(nodeId))
             {
-                url += $"/nodes?ids={Uri.EscapeDataString(nodeId)}";
+                url += $"/nodes?ids={Uri.EscapeDataString(nodeId.Trim().Replace("-", ":"))}";
             }
 
+            Debug.Log($"<b>[Figma Debug]</b> Requesting URL: <color=white>{url}</color>");
             return await ExecuteWithRetry(() => _httpClient.GetAsync(url));
         }
 
