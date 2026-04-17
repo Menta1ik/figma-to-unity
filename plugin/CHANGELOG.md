@@ -5,6 +5,15 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 и проект придерживается [Семантического Версионирования](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.6] - 2026-04-18
+
+### Исправлено
+- **Prefab Generation**: Реализован метод `UpdateOrCreatePrefab`, который был пустой заглушкой. Теперь префабы сохраняются автоматически.
+- **Image Sync**: Исправлено назначение спрайтов новым объектам через `_sessionCache`.
+- **Non-Destructive Update**: Плагин теперь корректно соблюдает настройку `preserveUnityNames` и не переименовывает вручную измененные объекты.
+- **Manual Components Safety**: В `ImageHandler` добавлена проверка `preserveManualComponents` для предотвращения удаления пользовательских компонентов.
+- **Clean Sync**: Реализовано удаление объектов (`HandleDeletedElements`), которых больше нет в макете Figma.
+
 ## [2.1.0] - 2026-04-17
 
 ### Добавлено

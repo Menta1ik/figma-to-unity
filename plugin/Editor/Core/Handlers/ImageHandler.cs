@@ -114,7 +114,18 @@ namespace FigmaImporter.V2.Core.Handlers
             // If empty container (Frame/Group) and not an icon candidate - remove Image
             if (!hasFills && !hasStroke && !isComplexVector && !isRectangle)
             {
-                Object.DestroyImmediate(image);
+                bool preserve = context.Settings != null && context.Settings.preserveManualComponents;
+                if (!preserve) 
+                {
+                    Object.DestroyImmediate(image);
+                }
+                else
+                {
+                    // If preserving, just make it invisible
+                    image.color = new Color(0, 0, 0, 0);
+                    image.sprite = null;
+                    image.raycastTarget = false;
+                }
             }
             else
             {

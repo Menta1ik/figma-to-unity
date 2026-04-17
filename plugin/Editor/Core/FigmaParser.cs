@@ -20,6 +20,7 @@ namespace FigmaImporter.V2.Core
         private TransformAuditReport _auditReport;
         private List<(FigmaNode node, FigmaElement element)> _deferredMasks;
         private Dictionary<string, FigmaElement> _existingCache;
+        private Dictionary<string, FigmaElement> _sessionCache; // Cache for current sync session
         private HashSet<string> _processedIds;
         
         private FigmaHandlerContext _handlerContext;
@@ -82,6 +83,7 @@ namespace FigmaImporter.V2.Core
             _auditReport = new TransformAuditReport();
             _deferredMasks = new List<(FigmaNode, FigmaElement)>();
             _processedIds = new HashSet<string>();
+            _sessionCache = new Dictionary<string, FigmaElement>();
             CreatedCount = 0; UpdatedCount = 0; SkippedCount = 0;
 
             _handlerContext = new FigmaHandlerContext
@@ -177,6 +179,10 @@ namespace FigmaImporter.V2.Core
             FigmaNode newNode = response.nodes[newNodeId].document;
             _handlerContext = new FigmaHandlerContext { Settings = Settings };
             if (FontMapTable != null) { _handlerContext.FontMappings = FontMapTable.Mappings; _handlerContext.GlobalFont = FontMapTable.GlobalFallbackFont; }
+            
+            _sessionCache = new Dictionary<string, FigmaElement>();
+            var allElements = target.GetComponentsInChildren<FigmaElement>(true);
+            foreach (var e in allElements) if (!string.IsNullOrEmpty(e.FigmaNodeId)) _sessionCache[e.FigmaNodeId] = e;
 
             ReskinRecursive(newNode, target);
 
@@ -234,7 +240,16 @@ namespace FigmaImporter.V2.Core
             }
 
             _processedIds.Add(node.id);
-            element.name = node.name;
+            _sessionCache[node.id] = element; // Populate session cache
+            
+            bool shouldUpdateName = true;
+            if (Settings != null && Settings.preserveUnityNames && !string.IsNullOrEmpty(element.name) && element.name != "GameObject" && element.name != "New Game Object")
+            {
+                // If it's an existing object with a custom name, and the setting is on, skip name update.
+                shouldUpdateName = false;
+            }
+            
+            if (shouldUpdateName) element.name = node.name;
 
             foreach (var handler in _handlers)
             {
@@ -280,9 +295,9 @@ namespace FigmaImporter.V2.Core
                         string relativePath = Path.Combine(spriteFolder, fileName);
                         Sprite sprite = FigmaAssetDownloader.ImportDataAsSprite(data, relativePath);
                         
-                        if (sprite != null && _existingCache.ContainsKey(node.id))
+                        if (sprite != null && _sessionCache.ContainsKey(node.id))
                         {
-                            var img = _existingCache[node.id].GetComponent<Image>();
+                            var img = _sessionCache[node.id].GetComponent<Image>();
                             if (img != null) img.sprite = sprite;
                         }
                     }
@@ -349,9 +364,35 @@ namespace FigmaImporter.V2.Core
             if (node.children != null) foreach (var child in node.children) CollectFontsRecursive(child, fonts);
         }
 
-        private void HandleDeletedElements() { /* Implement actual deletion logic if needed */ }
-        private void UpdateOrCreatePrefab(GameObject go) { /* Implement actual prefab update logic */ }
-        private void ReskinRecursive(FigmaNode node, Transform target) { /* Implement reskin logic */ }
-        private void ApplyDeferredMasks() { /* Implement mask logic */ }
+        private void HandleDeletedElements() 
+        {
+            if (_existingCache == null) return;
+            foreach (var kvp in _existingCache)
+            {
+                if (!_processedIds.Contains(kvp.Key) && kvp.Value != null)
+                {
+                    Object.DestroyImmediate(kvp.Value.gameObject);
+                }
+            }
+        }
+
+        private void UpdateOrCreatePrefab(GameObject go) 
+        {
+            if (Settings == null || string.IsNullOrEmpty(Settings.basePrefabsPath)) return;
+
+            string folderPath = Path.Combine("Assets", Settings.basePrefabsPath);
+            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+            string prefabPath = Path.Combine(folderPath, go.name + ".prefab").Replace("\\", "/");
+            
+            bool success;
+            PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction, out success);
+            
+            if (success) Debug.Log($"<color=green>[FigmaImporter] Prefab saved and connected: {prefabPath}</color>");
+            else Debug.LogError($"[FigmaImporter] Failed to save prefab at {prefabPath}");
+        }
+
+        private void ReskinRecursive(FigmaNode node, Transform target) { /* Implement reskin logic if needed */ }
+        private void ApplyDeferredMasks() { /* Implement mask logic if needed */ }
     }
 }
