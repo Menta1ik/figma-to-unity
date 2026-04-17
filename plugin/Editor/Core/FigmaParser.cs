@@ -231,7 +231,7 @@ namespace FigmaImporter.V2.Core
             UnityEditor.EditorUtility.DisplayProgressBar("Figma API", "Fetching fonts from Figma...", 0.3f);
             try
             {
-                bool onlySelectedNode = !string.IsNullOrEmpty(nodeId) && (Settings == null || !Settings.auditEntireFile);
+                bool onlySelectedNode = !string.IsNullOrEmpty(nodeId) && (Settings == null || !Settings.AuditEntireFile);
                 var json = await apiClient.GetFileAsync(_fileId, onlySelectedNode ? nodeId : "");
                 var response = JsonConvert.DeserializeObject<FigmaFileResponse>(json);
                 RunFontAudit(response);

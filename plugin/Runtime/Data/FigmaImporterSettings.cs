@@ -5,7 +5,10 @@ namespace FigmaImporter.V2.Data
     [CreateAssetMenu(fileName = "FigmaImporterSettings", menuName = "Figma Importer/Settings", order = 1)]
     public class FigmaImporterSettings : ScriptableObject
     {
-        public bool auditEntireFile = false; // MOVED TO TOP FOR VISIBILITY TEST
+        [Header("Optimization & Audit")]
+        [Tooltip("If true, Font Audit will scan the entire Figma file. If false, it will only scan the selected Node ID.")]
+        [SerializeField] private bool auditEntireFile = false;
+        public bool AuditEntireFile => auditEntireFile;
 
         [Header("Asset Paths")]
         [Tooltip("Path relative to Assets/ folder where sprites will be saved.")]
