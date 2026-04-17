@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 using Newtonsoft.Json;
 
 namespace FigmaImporter.V2.Core
@@ -12,29 +11,13 @@ namespace FigmaImporter.V2.Core
     public class FigmaAPIClient
     {
         private readonly string _accessToken;
-        private static readonly HttpClient _httpClient = new HttpClient();
 
         public FigmaAPIClient(string accessToken)
         {
             _accessToken = accessToken?.Trim();
-            
-            // Настройка заголовков (делаем один раз для статического клиента)
-            if (!_httpClient.DefaultRequestHeaders.Contains("X-Figma-Token"))
-            {
-                _httpClient.DefaultRequestHeaders.Add("X-Figma-Token", _accessToken);
-                _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Unity-Figma-Importer/2.1");
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            }
-            else 
-            {
-                // Если токен изменился, обновляем заголовок
-                _httpClient.DefaultRequestHeaders.Remove("X-Figma-Token");
-                _httpClient.DefaultRequestHeaders.Add("X-Figma-Token", _accessToken);
-            }
-
             if (!string.IsNullOrEmpty(_accessToken))
             {
-                Debug.Log($"<b>[Figma Debug]</b> API Client initialized. Token length: {_accessToken.Length}");
+                Debug.Log($"<b>[Figma Debug]</b> API Client (UnityWebRequest) initialized. Token length: {_accessToken.Length}");
             }
         }
 
@@ -46,8 +29,8 @@ namespace FigmaImporter.V2.Core
                 url += $"/nodes?ids={Uri.EscapeDataString(nodeId.Trim().Replace("-", ":"))}";
             }
 
-            Debug.Log($"<b>[Figma Debug]</b> Requesting: <color=white>{url}</color>");
-            return await ExecuteWithRetry(() => _httpClient.GetAsync(url, ct), 10, ct);
+            Debug.Log($"<b>[Figma Debug]</b> Requesting URL: <color=white>{url}</color>");
+            return await ExecuteRequest(url, ct);
         }
 
         public async Task<string> GetFileNodesAsync(string fileId, List<string> nodeIds, CancellationToken ct = default)
@@ -55,7 +38,7 @@ namespace FigmaImporter.V2.Core
             string idsJoined = string.Join(",", nodeIds);
             string url = $"https://api.figma.com/v1/files/{fileId.Trim()}/nodes?ids={Uri.EscapeDataString(idsJoined.Replace("-", ":"))}";
 
-            return await ExecuteWithRetry(() => _httpClient.GetAsync(url, ct), 10, ct);
+            return await ExecuteRequest(url, ct);
         }
 
         public async Task<Dictionary<string, string>> GetImageLinksAsync(string fileId, List<string> nodeIds, float scale = 1f, string format = "png", CancellationToken ct = default)
@@ -66,7 +49,7 @@ namespace FigmaImporter.V2.Core
             string url = $"https://api.figma.com/v1/images/{fileId.Trim()}?ids={Uri.EscapeDataString(idsJoined.Replace("-", ":"))}&format={format}";
             if (format == "png") url += $"&scale={scale.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
 
-            string content = await ExecuteWithRetry(() => _httpClient.GetAsync(url, ct), 10, ct);
+            string content = await ExecuteRequest(url, ct);
             if (string.IsNullOrEmpty(content)) return null;
 
             try
@@ -81,42 +64,54 @@ namespace FigmaImporter.V2.Core
             }
         }
 
-        private async Task<string> ExecuteWithRetry(Func<Task<HttpResponseMessage>> call, int maxRetries, CancellationToken ct)
+        private async Task<string> ExecuteRequest(string url, CancellationToken ct)
         {
             int retryCount = 0;
+            int maxRetries = 10;
             int delayMs = 2000;
 
             while (retryCount < maxRetries)
             {
                 ct.ThrowIfCancellationRequested();
-                try
+
+                using (UnityWebRequest request = UnityWebRequest.Get(url))
                 {
-                    var response = await call();
-                    string content = await response.Content.ReadAsStringAsync();
+                    request.SetRequestHeader("X-Figma-Token", _accessToken);
+                    request.SetRequestHeader("Accept", "application/json");
+                    request.SetRequestHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Unity/2.1");
 
-                    if (response.IsSuccessStatusCode) return content;
+                    var operation = request.SendWebRequest();
 
-                    if ((int)response.StatusCode == 429)
+                    while (!operation.isDone)
                     {
-                        Debug.LogWarning($"<color=orange>[Figma 429]</color> Too many requests. Waiting {delayMs / 1000f}s... (Attempt {retryCount + 1}/{maxRetries})");
+                        if (ct.IsCancellationRequested)
+                        {
+                            request.Abort();
+                            throw new OperationCanceledException();
+                        }
+                        await Task.Yield();
+                    }
+
+                    if (request.result == UnityWebRequest.Result.Success)
+                    {
+                        return request.downloadHandler.text;
+                    }
+
+                    if (request.responseCode == 429)
+                    {
+                        Debug.LogWarning($"<color=orange>[Figma 429]</color> Rate limit. Waiting {delayMs / 1000f}s... (Attempt {retryCount + 1}/{maxRetries})");
                         await Task.Delay(delayMs, ct);
                         retryCount++;
                         delayMs *= 2;
                         continue;
                     }
 
-                    Debug.LogError($"[Figma API Error] {response.StatusCode}: {content}");
-                    return null;
-                }
-                catch (OperationCanceledException) { throw; }
-                catch (Exception e)
-                {
-                    Debug.LogError($"[Figma API Exception] {e.Message}");
+                    Debug.LogError($"[Figma API Error] {request.responseCode}: {request.error}\nContent: {request.downloadHandler.text}");
                     return null;
                 }
             }
 
-            Debug.LogError("[Figma API] Max retries reached. Operation aborted.");
+            Debug.LogError("[Figma API] Max retries reached.");
             return null;
         }
 
