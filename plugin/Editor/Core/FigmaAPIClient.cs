@@ -23,6 +23,8 @@ namespace FigmaImporter.V2.Core
 
         public async Task<string> GetFileAsync(string fileId, string nodeId = "", CancellationToken ct = default)
         {
+            if (string.IsNullOrEmpty(fileId)) return null;
+            
             string url = $"https://api.figma.com/v1/files/{fileId.Trim()}";
             if (!string.IsNullOrEmpty(nodeId))
             {
@@ -136,5 +138,8 @@ namespace FigmaImporter.V2.Core
         }
 
         [Serializable] private class FigmaImageResponse { public Dictionary<string, string> images; }
+    }
+}
+string, string> images; }
     }
 }

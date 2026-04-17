@@ -5,6 +5,12 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 и проект придерживается [Семантического Версионирования](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.9] - 2026-04-18
+
+### Исправлено
+- **API Robustness**: Исправлена ошибка `NullReferenceException` в `FigmaAPIClient` при обработке сетевых ошибок (теперь проверяется наличие `downloadHandler`).
+- **Input Validation**: Добавлены проверки на пустые значения `fileId` и `nodeIds` перед выполнением запросов.
+
 ## [2.1.8] - 2026-04-18
 
 ### Исправлено
