@@ -11,14 +11,27 @@ namespace FigmaImporter.V2.Core.Handlers
         public void Apply(FigmaNode node, FigmaElement target, FigmaHandlerContext context)
         {
             RectTransform rt = target.GetComponent<RectTransform>();
-            if (rt == null) rt = target.gameObject.AddComponent<RectTransform>();
+            if (rt == null) 
+            {
+                // If we can't add it (prefab instance), just use regular transform position as fallback, or skip.
+                if (PrefabUtility.IsPartOfAnyPrefab(target.gameObject))
+                {
+                    // For regular Transform, we just move it.
+                    target.transform.localPosition = Vector3.zero;
+                    return;
+                }
+                rt = target.gameObject.AddComponent<RectTransform>();
+            }
 
             // 1. HARD RESET
-            rt.anchorMin = new Vector2(0, 1);
-            rt.anchorMax = new Vector2(0, 1);
-            rt.pivot = new Vector2(0, 1);
-            rt.localScale = Vector3.one;
-            rt.localRotation = Quaternion.identity;
+            if (rt != null)
+            {
+                rt.anchorMin = new Vector2(0, 1);
+                rt.anchorMax = new Vector2(0, 1);
+                rt.pivot = new Vector2(0, 1);
+                rt.localScale = Vector3.one;
+                rt.localRotation = Quaternion.identity;
+            }
 
             // Fallback for missing bounding box (e.g. GROUP nodes)
             float boxX = node.absoluteBoundingBox != null ? node.absoluteBoundingBox.x : 0f;

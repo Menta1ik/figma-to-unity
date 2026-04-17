@@ -235,12 +235,20 @@ namespace FigmaImporter.V2.Core
                 GameObject go = new GameObject(node.name);
                 go.transform.SetParent(parent, false);
                 element = go.AddComponent<FigmaElement>();
-                // CRITICAL: Ensure RectTransform for UI
-                if (go.GetComponent<RectTransform>() == null) go.AddComponent<RectTransform>();
+                
+                // CRITICAL: Ensure RectTransform for UI, but skip if it's a prefab instance with Transform
+                if (go.GetComponent<RectTransform>() == null)
+                {
+                    bool isPrefab = PrefabUtility.IsPartOfAnyPrefab(go);
+                    if (!isPrefab) go.AddComponent<RectTransform>();
+                    else Debug.LogWarning($"[FigmaImporter] Cannot add RectTransform to prefab instance '{go.name}'. Please convert it to RectTransform manually or unpack the prefab.");
+                }
                 
                 element.FigmaNodeId = node.id;
                 CreatedCount++;
             }
+
+            if (element == null) return;
 
             _processedIds.Add(node.id);
             _sessionCache[node.id] = element; // Populate session cache
@@ -248,7 +256,6 @@ namespace FigmaImporter.V2.Core
             bool shouldUpdateName = true;
             if (Settings != null && Settings.preserveUnityNames && !string.IsNullOrEmpty(element.name) && element.name != "GameObject" && element.name != "New Game Object")
             {
-                // If it's an existing object with a custom name, and the setting is on, skip name update.
                 shouldUpdateName = false;
             }
             
@@ -256,8 +263,15 @@ namespace FigmaImporter.V2.Core
 
             foreach (var handler in _handlers)
             {
-                if (handler.CanHandle(node))
-                    handler.Apply(node, element, _handlerContext);
+                try 
+                {
+                    if (handler != null && handler.CanHandle(node))
+                        handler.Apply(node, element, _handlerContext);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[FigmaImporter] Error in handler {handler.GetType().Name} for node {node.name}: {e.Message}");
+                }
             }
 
             if (node.children != null)
