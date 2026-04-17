@@ -37,6 +37,8 @@ namespace FigmaImporter.V2.Core
 
         public async Task<string> GetFileNodesAsync(string fileId, List<string> nodeIds, CancellationToken ct = default)
         {
+            if (string.IsNullOrEmpty(fileId) || nodeIds == null) return null;
+            
             string idsJoined = string.Join(",", nodeIds);
             string url = $"https://api.figma.com/v1/files/{fileId.Trim()}/nodes?ids={Uri.EscapeDataString(idsJoined.Replace("-", ":"))}";
 
@@ -45,7 +47,7 @@ namespace FigmaImporter.V2.Core
 
         public async Task<Dictionary<string, string>> GetImageLinksAsync(string fileId, List<string> nodeIds, float scale = 1f, string format = "png", CancellationToken ct = default)
         {
-            if (nodeIds == null || nodeIds.Count == 0) return null;
+            if (string.IsNullOrEmpty(fileId) || nodeIds == null || nodeIds.Count == 0) return null;
 
             const int batchSize = 25;
             var allImages = new Dictionary<string, string>();
@@ -116,7 +118,7 @@ namespace FigmaImporter.V2.Core
 
                     if (request.result == UnityWebRequest.Result.Success)
                     {
-                        return request.downloadHandler.text;
+                        return request.downloadHandler?.text;
                     }
 
                     if (request.responseCode == 429)
@@ -128,7 +130,8 @@ namespace FigmaImporter.V2.Core
                         continue;
                     }
 
-                    Debug.LogError($"[Figma API Error] {request.responseCode}: {request.error}\nContent: {request.downloadHandler.text}");
+                    string errorContent = request.downloadHandler != null ? request.downloadHandler.text : "No content";
+                    Debug.LogError($"[Figma API Error] {request.responseCode}: {request.error}\nContent: {errorContent}");
                     return null;
                 }
             }
@@ -138,8 +141,5 @@ namespace FigmaImporter.V2.Core
         }
 
         [Serializable] private class FigmaImageResponse { public Dictionary<string, string> images; }
-    }
-}
-string, string> images; }
     }
 }
