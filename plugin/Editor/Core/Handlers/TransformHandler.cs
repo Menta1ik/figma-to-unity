@@ -57,8 +57,10 @@ namespace FigmaImporter.V2.Core.Handlers
             // 3. APPLY TO UNITY (Validation happens in Parser Stages 2 & 3)
             rt.sizeDelta = new Vector2(boxWidth, boxHeight);
             rt.anchoredPosition3D = new Vector3(localX, localY, 0f);
+            rt.localScale = Vector3.one;
 
             target.gameObject.name = node.name;
+            target.gameObject.SetActive(node.visible != false);
             
             // NO MASKING HERE. Deferred to FigmaParser.ApplyDeferredMasks() for stability.
         }

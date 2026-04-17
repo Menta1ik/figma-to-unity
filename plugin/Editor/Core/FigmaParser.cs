@@ -130,20 +130,30 @@ namespace FigmaImporter.V2.Core
                 List<FigmaNode> topNodes = new List<FigmaNode>();
                 if (response.nodes != null)
                 {
+                    Debug.Log($"[Figma Debug] Response contains 'nodes' dictionary with {response.nodes.Count} entries.");
                     foreach (var container in response.nodes.Values) topNodes.Add(container.document);
                 }
                 else if (response.document != null)
                 {
+                    Debug.Log("[Figma Debug] Response contains 'document' root.");
                     topNodes.Add(response.document);
                 }
 
-                if (topNodes.Count > 0 && topNodes[0].absoluteBoundingBox != null)
+                if (topNodes.Count == 0)
+                {
+                    Debug.LogWarning("[Figma Debug] No top-level nodes found to sync!");
+                    return;
+                }
+
+                if (topNodes[0].absoluteBoundingBox != null)
                 {
                     var bbox = topNodes[0].absoluteBoundingBox;
                     rootElement.AbsoluteBox = new Rect(bbox.x, bbox.y, bbox.width, bbox.height);
+                    Debug.Log($"[Figma Debug] Root AbsoluteBox set to: {rootElement.AbsoluteBox}");
                 }
 
                 int total = topNodes.Sum(n => CountNodes(n));
+                Debug.Log($"[Figma Debug] Starting sync for {total} nodes...");
                 int current = 0;
 
                 foreach (var node in topNodes)
@@ -151,6 +161,8 @@ namespace FigmaImporter.V2.Core
                     SyncRecursive(node, rootCanvas, rootCanvas.name, ref current, total, onProgress, ct);
                 }
 
+                Debug.Log($"[Figma Debug] Sync completed. Created: {CreatedCount}, Updated: {UpdatedCount}. Objects in scene: {rootCanvas.childCount}");
+                
                 // Apply deferred masks logic here or method call
                 _auditReport.PrintReport();
 
