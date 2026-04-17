@@ -1,40 +1,39 @@
-# 🎨 Figma Direct Importer v2.1.0 (uGUI)
+# 🌌 Figma to Unity Importer V2
 
-Бесшовный перенос UI из **Figma** в **Unity** (uGUI) с поддержкой умной синхронизации, автоматической генерации префабов и настройки интерактивных компонентов.
-
----
-
-## 🚀 Основные возможности v2.1.0
-- **Smart Sync**: Обновляйте существующие префабы без потери данных. Система отслеживает хеши и Node ID.
-- **Auto-Prefab Mode**: Создает готовые UI-префабы из Figma-фреймов нажатием одной кнопки.
-- **Interactive Pipeline**: Автоматическое назначение компонентов `Button`, `InputField`, `Toggle`, `ScrollRect` по суффиксам в именах.
-- **Local/Cloud Image Sync**: Продвинутый кэшинг и загрузка графики в Retina 3x.
-- **UX Localization**: Интерфейс плагина полностью на английском для удобства команд.
-
-## 📦 Установка (UPM)
-Этот инструмент распространяется как стандартный **Unity Package Manager (UPM)** пакет.
-
-### Способ 1: Git URL (Рекомендуемый)
-1. Откройте **Unity Project Browser** -> **Package Manager**.
-2. Нажмите `+` -> **Add package from git URL...**
-3. Вставьте ссылку: `https://github.com/Menta1ik/figma-to-unity.git?path=/Game/Packages/com.figmaimporter.v2`
-
-### Способ 2: Local Disk
-1. Клонируйте репозиторий.
-2. В Package Manager выберите **Add package from disk...** и укажите файл `package.json` в папке `Game/Packages/com.figmaimporter.v2`.
+**Figma-to-Unity Pipeline** — мощный инструмент для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity uGUI. Плагин использует неразрушающую архитектуру **Smart Sync**, позволяя обновлять UI из Figma без потери ваших изменений в Unity.
 
 ---
 
-## 📖 Документация
-Подробные руководства по работе с новой версией доступны в папке `docs/`:
-- 📕 **[Developer Manual (v2.1)](docs/DEVELOPER_MANUAL_v2.1.md)** — Пошаговая настройка и использование.
-- 🗺 **[Roadmap Development](docs/ROADMAP_v2.1_Development.md)** — Статус проекта и планы.
-- 💡 **[Concepts](docs/CONCEPTS_v2.1.md)** — Архитектурные принципы плагина.
+## 🚀 Быстрый старт (UPM)
 
-## 🛠 Требования
-- **Unity 2021.3 (LTS)** или выше.
-- **TextMesh Pro** (установлен через Package Manager).
-- **Newtonsoft.Json** (автоматически подтягивается как зависимость).
+Самый простой способ установить плагин — использовать Unity Package Manager.
+
+1. Откройте **Window -> Package Manager** в Unity.
+2. Нажмите **+** -> **Add package from git URL...**.
+3. Вставьте ссылку:
+   `https://github.com/Menta1ik/figma-to-unity.git?path=/plugin`
 
 ---
-*Разработано BrainySoftware OU. Версия 2.1.0 "Stable"*
+
+## 📚 Документация
+
+Подробные инструкции находятся в папке `plugin/docs/`:
+- [Руководство разработчика (Setup & Usage)](plugin/docs/DEVELOPER_MANUAL_v2.1.md)
+- [Техническая концепция и Smart Sync](plugin/docs/CONCEPTS_v2.1.md)
+- [Чек-лист для дизайнеров](plugin/docs/FigmaDirectImporter_Manual.md)
+
+---
+
+## 🛠 Ключевые особенности
+
+- **Smart Sync:** Обновляйте макеты, сохраняя ссылки на компоненты и логику в Unity.
+- **Auto Layout Support:** Частичная поддержка Figma Auto Layout для создания адаптивных интерфейсов.
+- **Font Mapping:** Гибкая таблица соответствия шрифтов Figma и TextMeshPro.
+- **Image Caching:** Автоматическое скачивание и оптимизация спрайтов.
+
+---
+
+## 📜 Лицензия
+
+© 2026 **BrainySoftware OU**. Все права защищены.
+Разработано для внутреннего использования в проекте **Front-Strike**.

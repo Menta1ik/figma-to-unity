@@ -1,36 +1,30 @@
-_bmad/
-_bmad-output/
-.agent/
-tools/
-figma_mcp.py
-run_figma.py
-mcp-config.json
-GEMINI.md
-Game/Library/
-Game/Temp/
-Game/Obj/
-Game/Logs/
-# Игнорировать всю папку с игрой-песочницей, чтобы не трекать ассеты
-Game/*
+# Ignore everything by default
+/*
 
-# Исключить из игнора сам плагин (UPM пакет)
-!Game/Packages/
-Game/Packages/*
-!Game/Packages/com.figmaimporter.v2/
+# Allow the plugin folder and .gitignore
+!/plugin/
+!.gitignore
+!/README.md
 
-# Игнорировать кэш спрайтов внутри плагина, если он там появится
-Game/Packages/com.figmaimporter.v2/Sprites/
-**/node_modules/
+# --- Completely ignore Samples (internal testing project) ---
+/plugin/Samples~/
 
-# Игнорировать скачанные Фигмой картинки (кэш спрайтов)
-Game/Assets/FigmaImporter/Sprites/
+# --- Unity General patterns ---
+**/[Ll]ibrary/
+**/[Tt]emp/
+**/[Oo]bj/
+**/[Bb]uild/
+**/[Bb]uilds/
+**/[Ll]ogs/
+**/[Uu]ser[Ss]ettings/
 
-# Игнорировать временные файлы редактора IDE
-Game/.vscode/
+# IDE & OS
 .vscode/
+.idea/
 *.csproj
 *.sln
 *.slnx
-
-# Игнорировать локальные логи и память Антигравити
-.gemini/
+*.userprefs
+*.user
+.DS_Store
+[Tt]humbs.db

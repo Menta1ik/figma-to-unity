@@ -8,13 +8,32 @@ status: isolation
 
 Данный документ описывает процесс настройки, использования и расширения системы импорта интерфейсов из Figma в Unity.
 
-## Step 0: Подготовка ассетов (Первый запуск)
+## 📦 Установка (Installation)
 
-Если вы устанавливаете плагин впервые, вам необходимо создать файлы настроек:
+Плагин полностью совместим со стандартом **Unity Package Manager (UPM)** и устанавливается через Git.
 
-1.  **FigmaImporterSettings**: В папке `Assets` (рекомендуется `Assets/Game/Settings/`) нажмите правую кнопку мыши -> **Create -> Figma Importer -> Settings**. Назовите файл `FigmaImporterSettings`.
-2.  **FontMappingTable**: Там же нажмите правую кнопку мыши -> **Create -> Figma Importer -> Font Mapping Table**. Назовите файл `FontMappingTable`.
-3.  **TextMeshPro**: Убедитесь, что в проекте установлен TextMeshPro, так как плагин использует его для всех текстовых элементов.
+### Способ 1: Через Git URL (Рекомендуется)
+1. В Unity откройте **Window -> Package Manager**.
+2. Нажмите кнопку **+** в левом верхнем углу и выберите **Add package from git URL...**.
+3. Введите следующую ссылку:
+   `https://github.com/Menta1ik/figma-to-unity.git?path=/plugin`
+4. Нажмите **Add**. Unity автоматически скачает плагин и все его зависимости.
+
+### Способ 2: Локальная установка (Для разработки)
+Если вы хотите вносить правки в сам плагин:
+1. Клонируйте репозиторий к себе на диск.
+2. В Package Manager выберите **Add package from disk...**.
+3. Укажите путь к файлу `plugin/package.json`.
+
+---
+
+## Step 0: Подготовка проекта
+
+Перед первым запуском убедитесь, что в вашем проекте настроены необходимые ассеты:
+
+1.  **TextMeshPro**: Убедитесь, что в проекте установлен TMP (**Window -> TextMeshPro -> Import TMP Essential Resources**).
+2.  **FigmaImporterSettings**: Создайте файл настроек. В папке `Assets` нажмите ПКМ -> **Create -> Figma Importer -> Settings**.
+3.  **FontMappingTable**: Создайте таблицу шрифтов. ПКМ -> **Create -> Figma Importer -> Font Mapping Table**.
 
 ---
 
@@ -84,13 +103,10 @@ status: isolation
 
 ---
 
-## 📦 Сборка и распространение (Distribution)
+## 📜 Версионность и поддержка
 
-Плагин полностью совместим со стандартом **Unity Package Manager (UPM)**.
-
-### Как перенести плагин в другой проект:
-1.  **Add from disk:** В новом проекте откройте `Package Manager`, нажмите `+` -> `Add package from disk` и выберите `package.json` из папки `com.figmaimporter.v2`.
-2.  **Add from Git:** Если вы загрузите папку пакета в Git-репозиторий, ее можно будет устанавливать через `Add package from git URL`.
-3.  **Локальная копия:** Вы можете просто скопировать папку `com.figmaimporter.v2` в папку `Packages/` вашего нового проекта.
+- **Версия:** 2.1.0
+- **Unity:** 2021.3+
+- **Smart Sync:** Автоматическое обновление UI без потери локальных правок (за счет компонента `FigmaElement`).
 
 **BrainySoft © 2026**
