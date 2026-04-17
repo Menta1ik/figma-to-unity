@@ -20,7 +20,7 @@ namespace FigmaImporter.V2.Core
             _httpClient.DefaultRequestHeaders.Add("X-Figma-Token", _accessToken);
         }
 
-        public async Task<string> GetFileAsync(string fileId, string nodeId = "")
+        public async Task<string> GetFileAsync(string fileId, string nodeId = "", System.Threading.CancellationToken ct = default)
         {
             string url = $"https://api.figma.com/v1/files/{fileId.Trim()}";
             if (!string.IsNullOrEmpty(nodeId))
@@ -29,18 +29,18 @@ namespace FigmaImporter.V2.Core
             }
 
             Debug.Log($"<b>[Figma Debug]</b> Requesting URL: <color=white>{url}</color>");
-            return await ExecuteWithRetry(() => _httpClient.GetAsync(url));
+            return await ExecuteWithRetry(() => _httpClient.GetAsync(url, ct), 10, ct);
         }
 
-        public async Task<string> GetFileNodesAsync(string fileId, List<string> nodeIds)
+        public async Task<string> GetFileNodesAsync(string fileId, List<string> nodeIds, System.Threading.CancellationToken ct = default)
         {
             string idsJoined = string.Join(",", nodeIds);
             string url = $"https://api.figma.com/v1/files/{fileId.Trim()}/nodes?ids={Uri.EscapeDataString(idsJoined)}";
 
-            return await ExecuteWithRetry(() => _httpClient.GetAsync(url));
+            return await ExecuteWithRetry(() => _httpClient.GetAsync(url, ct), 10, ct);
         }
 
-        public async Task<Dictionary<string, string>> GetImageLinksAsync(string fileId, List<string> nodeIds, float scale = 1f, string format = "png")
+        public async Task<Dictionary<string, string>> GetImageLinksAsync(string fileId, List<string> nodeIds, float scale = 1f, string format = "png", System.Threading.CancellationToken ct = default)
         {
             if (nodeIds == null || nodeIds.Count == 0) return null;
 
@@ -50,7 +50,7 @@ namespace FigmaImporter.V2.Core
             string url = $"https://api.figma.com/v1/images/{fileId.Trim()}?ids={escapedIds}&format={format}";
             if (format == "png") url += $"&scale={scale.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
 
-            string content = await ExecuteWithRetry(() => _httpClient.GetAsync(url));
+            string content = await ExecuteWithRetry(() => _httpClient.GetAsync(url, ct), 10, ct);
             if (string.IsNullOrEmpty(content)) return null;
 
             try
@@ -60,18 +60,21 @@ namespace FigmaImporter.V2.Core
             }
             catch (Exception e)
             {
+                if (ct.IsCancellationRequested) return null;
                 Debug.LogError($"[Figma v2.1] JSON Error: {e.Message}");
                 return null;
             }
         }
 
-        private async Task<string> ExecuteWithRetry(Func<Task<HttpResponseMessage>> call, int maxRetries = 10)
+        private async Task<string> ExecuteWithRetry(Func<Task<HttpResponseMessage>> call, int maxRetries = 10, System.Threading.CancellationToken ct = default)
         {
             int retryCount = 0;
-            int delayMs = 2000; // Start with 2 seconds
+            int delayMs = 2000;
 
             while (retryCount < maxRetries)
             {
+                ct.ThrowIfCancellationRequested();
+
                 try
                 {
                     var response = await call();
@@ -85,9 +88,9 @@ namespace FigmaImporter.V2.Core
                     if ((int)response.StatusCode == 429)
                     {
                         Debug.LogWarning($"<color=orange>[Figma v2.1] Rate limit hit (429).</color> Figma is busy. Waiting <b>{delayMs/1000f}s</b> before retry {retryCount + 1}/{maxRetries}...");
-                        await Task.Delay(delayMs);
+                        await Task.Delay(delayMs, ct);
                         retryCount++;
-                        delayMs *= 2; // Exponential backoff: 2s, 4s, 8s, 16s...
+                        delayMs *= 2;
                         continue;
                     }
 

@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using FigmaImporter.V2.Core;
 using FigmaImporter.V2.Data;
 
@@ -21,6 +23,9 @@ namespace FigmaImporter.V2.UI
         private FigmaImporterSettings _settings;
         private Vector2 _scrollPos;
         private bool _devMode = false;
+
+        private bool _isProcessing = false;
+        private CancellationTokenSource _cts;
 
         // Reskin variables
         private GameObject _reskinTarget;
@@ -104,30 +109,45 @@ namespace FigmaImporter.V2.UI
             _forceUpdate = EditorGUILayout.Toggle("Force Update", _forceUpdate);
             EditorGUILayout.EndHorizontal();
 
-            GUI.backgroundColor = new Color(0.2f, 0.8f, 0.4f);
-            if (GUILayout.Button("🚀 RUN FULL SYNC", GUILayout.Height(40)))
+            if (_isProcessing)
             {
-                EditorApplication.delayCall += () => RunSync();
+                GUI.backgroundColor = new Color(1f, 0.3f, 0.3f);
+                if (GUILayout.Button("🛑 CANCEL OPERATION", GUILayout.Height(40)))
+                {
+                    _cts?.Cancel();
+                }
+                GUI.backgroundColor = Color.white;
             }
-            GUI.backgroundColor = Color.white;
+            else
+            {
+                GUI.backgroundColor = new Color(0.2f, 0.8f, 0.4f);
+                if (GUILayout.Button("🚀 RUN FULL SYNC", GUILayout.Height(40)))
+                {
+                    RunSync();
+                }
+                GUI.backgroundColor = Color.white;
+            }
             EditorGUILayout.EndVertical();
 
             // --- SECTION 4: UTILS ---
             EditorGUILayout.Space();
-            EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("Utilities", EditorStyles.boldLabel);
-            if (GUILayout.Button("🧹 Clear Root Canvas"))
+            if (!_isProcessing)
             {
-                if (EditorUtility.DisplayDialog("Warning", "This will delete all children of the root canvas. Continue?", "Delete", "Cancel"))
+                EditorGUILayout.BeginVertical("box");
+                EditorGUILayout.LabelField("Utilities", EditorStyles.boldLabel);
+                if (GUILayout.Button("🧹 Clear Root Canvas"))
                 {
-                    EditorApplication.delayCall += () => ClearCanvas();
+                    if (EditorUtility.DisplayDialog("Warning", "This will delete all children of the root canvas. Continue?", "Delete", "Cancel"))
+                    {
+                        EditorApplication.delayCall += () => ClearCanvas();
+                    }
                 }
-            }
-            EditorGUILayout.EndVertical();
+                EditorGUILayout.EndVertical();
 
-            EditorGUILayout.Space();
-            _devMode = EditorGUILayout.Toggle("Show Dev Tools", _devMode);
-            if (_devMode) DrawDevSection();
+                EditorGUILayout.Space();
+                _devMode = EditorGUILayout.Toggle("Show Dev Tools", _devMode);
+                if (_devMode) DrawDevSection();
+            }
 
             EditorGUILayout.EndScrollView();
         }
@@ -139,10 +159,32 @@ namespace FigmaImporter.V2.UI
                 Debug.LogError("[FigmaImporter] Please provide Token and File ID first.");
                 return;
             }
-            FigmaParser parser = new FigmaParser(_accessToken, _fileId);
-            parser.FontMapTable = _fontMapping;
-            parser.Settings = _settings;
-            await parser.RunFontAudit(_nodeId);
+
+            StartOperation();
+            try
+            {
+                FigmaParser parser = new FigmaParser(_accessToken, _fileId);
+                parser.FontMapTable = _fontMapping;
+                parser.Settings = _settings;
+                await parser.RunFontAudit(_nodeId, _cts.Token);
+            }
+            catch (OperationCanceledException) { Debug.LogWarning("[FigmaImporter] Font Audit cancelled."); }
+            catch (System.Exception e) { Debug.LogError($"[FigmaImporter] Audit Error: {e.Message}"); }
+            finally { EndOperation(); }
+        }
+
+        private void StartOperation()
+        {
+            _isProcessing = true;
+            _cts = new CancellationTokenSource();
+        }
+
+        private void EndOperation()
+        {
+            _isProcessing = false;
+            _cts?.Dispose();
+            _cts = null;
+            Repaint();
         }
 
         private void DrawDevSection()
@@ -185,55 +227,57 @@ namespace FigmaImporter.V2.UI
                 return;
             }
 
-            FigmaParser parser = new FigmaParser(_accessToken, _fileId)
+            if (_rootCanvas == null)
             {
-                FontMapTable = _fontMapping,
-                Settings = _settings,
-                DownloadImages = _downloadImages,
-                ForceUpdate = _forceUpdate
-            };
-
-            string jsonContent = "";
-            
-            if (_useLocalJson)
-            {
-                string jsonPath = Path.Combine(Application.dataPath, "lobby_figma.json");
-                if (!File.Exists(jsonPath))
-                {
-                    Debug.LogError($"[Figma v2.1] Local file not found: {jsonPath}");
-                    return;
-                }
-                jsonContent = File.ReadAllText(jsonPath);
-            }
-            else 
-            {
-                EditorUtility.DisplayProgressBar("Figma API", "Fetching cloud data...", 0.1f);
-                try 
-                {
-                    var apiClient = new FigmaAPIClient(_accessToken);
-                    jsonContent = await apiClient.GetFileAsync(_fileId, _nodeId);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError($"[Figma API Error] {e.Message}");
-                    EditorUtility.ClearProgressBar();
-                    return;
-                }
+                EditorUtility.DisplayDialog("Error", "Please assign Root Canvas!", "OK");
+                return;
             }
 
-            Undo.RegisterFullObjectHierarchyUndo(_rootCanvas.gameObject, "Figma Smart Sync");
-            
+            StartOperation();
             try 
             {
+                FigmaParser parser = new FigmaParser(_accessToken, _fileId)
+                {
+                    FontMapTable = _fontMapping,
+                    Settings = _settings,
+                    DownloadImages = _downloadImages,
+                    ForceUpdate = _forceUpdate
+                };
+
+                string jsonContent = "";
+                
+                if (_useLocalJson)
+                {
+                    string jsonPath = Path.Combine(Application.dataPath, "lobby_figma.json");
+                    if (!File.Exists(jsonPath))
+                    {
+                        Debug.LogError($"[Figma v2.1] Local file not found: {jsonPath}");
+                        return;
+                    }
+                    jsonContent = File.ReadAllText(jsonPath);
+                }
+                else 
+                {
+                    EditorUtility.DisplayProgressBar("Figma API", "Fetching cloud data...", 0.1f);
+                    jsonContent = await new FigmaAPIClient(_accessToken).GetFileAsync(_fileId, _nodeId, _cts.Token);
+                }
+
+                if (string.IsNullOrEmpty(jsonContent)) return;
+
+                Undo.RegisterFullObjectHierarchyUndo(_rootCanvas.gameObject, "Figma Smart Sync");
+                
                 await parser.ProcessFileAsync(jsonContent, _rootCanvas, (current, total, nodeName) => {
                     float progress = (float)current / total;
                     EditorUtility.DisplayProgressBar("Syncing", $"Processing node {current}/{total}: {nodeName}", progress);
-                });
+                }, _cts.Token);
             }
+            catch (OperationCanceledException) { Debug.LogWarning("[FigmaImporter] Sync operation cancelled."); }
+            catch (System.Exception e) { Debug.LogError($"[Figma API Error] {e.Message}"); }
             finally
             {
                 EditorUtility.ClearProgressBar();
                 EditorUtility.UnloadUnusedAssetsImmediate();
+                EndOperation();
             }
         }
 
