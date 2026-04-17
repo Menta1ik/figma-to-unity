@@ -11,7 +11,7 @@ namespace FigmaImporter.V2.Core.Handlers
         public void Apply(FigmaNode node, FigmaElement target, FigmaHandlerContext context)
         {
             RectTransform rt = target.GetComponent<RectTransform>();
-            if (rt == null) return;
+            if (rt == null) rt = target.gameObject.AddComponent<RectTransform>();
 
             // 1. HARD RESET
             rt.anchorMin = new Vector2(0, 1);

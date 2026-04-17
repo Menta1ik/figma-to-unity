@@ -235,6 +235,9 @@ namespace FigmaImporter.V2.Core
                 GameObject go = new GameObject(node.name);
                 go.transform.SetParent(parent, false);
                 element = go.AddComponent<FigmaElement>();
+                // CRITICAL: Ensure RectTransform for UI
+                if (go.GetComponent<RectTransform>() == null) go.AddComponent<RectTransform>();
+                
                 element.FigmaNodeId = node.id;
                 CreatedCount++;
             }
