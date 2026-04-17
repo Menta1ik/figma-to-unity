@@ -117,7 +117,7 @@ namespace FigmaImporter.V2.Core.Handlers
                 bool preserve = context.Settings != null && context.Settings.preserveManualComponents;
                 if (!preserve) 
                 {
-                    Object.DestroyImmediate(image);
+                    UnityEngine.Object.DestroyImmediate(image);
                 }
                 else
                 {

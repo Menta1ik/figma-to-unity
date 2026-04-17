@@ -5,6 +5,11 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 и проект придерживается [Семантического Версионирования](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.7] - 2026-04-18
+
+### Исправлено
+- **Compilation**: Исправлена ошибка `CS0104: Ambiguous reference between UnityEngine.Object and System.Object` в `FigmaParser` и `ImageHandler`.
+
 ## [2.1.6] - 2026-04-18
 
 ### Исправлено

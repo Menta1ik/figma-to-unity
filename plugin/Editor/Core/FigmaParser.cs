@@ -371,7 +371,7 @@ namespace FigmaImporter.V2.Core
             {
                 if (!_processedIds.Contains(kvp.Key) && kvp.Value != null)
                 {
-                    Object.DestroyImmediate(kvp.Value.gameObject);
+                    UnityEngine.Object.DestroyImmediate(kvp.Value.gameObject);
                 }
             }
         }
