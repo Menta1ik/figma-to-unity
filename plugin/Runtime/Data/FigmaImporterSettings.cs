@@ -28,5 +28,9 @@ namespace FigmaImporter.V2.Data
         public string inputMarker = "[Input]";
         public string scrollMarker = "[Scroll]";
         public string toggleMarker = "[Toggle]";
+
+        [Header("Optimization & Audit")]
+        [Tooltip("If true, Font Audit will scan the entire Figma file. If false, it will only scan the selected Node ID.")]
+        public bool auditEntireFile = false;
     }
 }

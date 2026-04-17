@@ -219,7 +219,7 @@ namespace FigmaImporter.V2.Core
             Debug.Log($"<color=cyan>[Figma Reskin] Reskin completed for {target.name}!</color>");
         }
 
-        public async System.Threading.Tasks.Task RunFontAudit()
+        public async System.Threading.Tasks.Task RunFontAudit(string nodeId = "")
         {
             if (string.IsNullOrEmpty(_accessToken) || string.IsNullOrEmpty(_fileId))
             {
@@ -231,7 +231,8 @@ namespace FigmaImporter.V2.Core
             UnityEditor.EditorUtility.DisplayProgressBar("Figma API", "Fetching fonts from Figma...", 0.3f);
             try
             {
-                var json = await apiClient.GetFileAsync(_fileId);
+                bool onlySelectedNode = !string.IsNullOrEmpty(nodeId) && (Settings == null || !Settings.auditEntireFile);
+                var json = await apiClient.GetFileAsync(_fileId, onlySelectedNode ? nodeId : "");
                 var response = JsonConvert.DeserializeObject<FigmaFileResponse>(json);
                 RunFontAudit(response);
             }
