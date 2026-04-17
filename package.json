@@ -1,7 +1,7 @@
 {
   "name": "figma-to-unity",
-  "version": "1.1.1",
-  "description": "Direct Figma to Unity (uGUI) importer with smart layout recognition and retina graphics support.",
+  "version": "2.1.0",
+  "description": "Production-ready Figma to Unity (uGUI) importer with Smart Sync, Auto-Prefab, and Interactive Pipeline support.",
   "main": "index.js",
   "directories": {
     "doc": "docs"
