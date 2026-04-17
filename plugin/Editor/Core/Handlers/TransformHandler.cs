@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEditor;
 using FigmaImporter.V2.Data;
 using FigmaImporter.V2.Core.Validation;
 

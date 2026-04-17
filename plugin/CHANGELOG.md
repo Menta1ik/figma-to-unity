@@ -5,6 +5,11 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 и проект придерживается [Семантического Версионирования](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.13] - 2026-04-18
+
+### Исправлено
+- **Compilation Fix**: Добавлен пропущенный `using UnityEditor;` в `TransformHandler.cs`.
+
 ## [2.1.12] - 2026-04-18
 
 ### Исправлено
