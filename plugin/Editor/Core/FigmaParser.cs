@@ -121,6 +121,10 @@ namespace FigmaImporter.V2.Core
             if (canvas != null) canvas.enabled = false;
             if (scaler != null) scaler.enabled = false;
 
+            // Initialize Root AbsoluteBox for position calculation
+            var rootElement = rootCanvas.GetComponent<FigmaElement>();
+            if (rootElement == null) rootElement = rootCanvas.gameObject.AddComponent<FigmaElement>();
+            
             try 
             {
                 List<FigmaNode> topNodes = new List<FigmaNode>();
@@ -131,6 +135,12 @@ namespace FigmaImporter.V2.Core
                 else if (response.document != null)
                 {
                     topNodes.Add(response.document);
+                }
+
+                if (topNodes.Count > 0 && topNodes[0].absoluteBoundingBox != null)
+                {
+                    var bbox = topNodes[0].absoluteBoundingBox;
+                    rootElement.AbsoluteBox = new Rect(bbox.x, bbox.y, bbox.width, bbox.height);
                 }
 
                 int total = topNodes.Sum(n => CountNodes(n));
@@ -315,7 +325,11 @@ namespace FigmaImporter.V2.Core
                         if (sprite != null && _sessionCache.ContainsKey(node.id))
                         {
                             var img = _sessionCache[node.id].GetComponent<Image>();
-                            if (img != null) img.sprite = sprite;
+                            if (img != null) 
+                            {
+                                img.sprite = sprite;
+                                img.color = Color.white; // Restore visibility!
+                            }
                         }
                     }
                 }
