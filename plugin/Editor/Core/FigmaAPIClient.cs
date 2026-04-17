@@ -63,10 +63,10 @@ namespace FigmaImporter.V2.Core
             }
         }
 
-        private async Task<string> ExecuteWithRetry(Func<Task<HttpResponseMessage>> call, int maxRetries = 5)
+        private async Task<string> ExecuteWithRetry(Func<Task<HttpResponseMessage>> call, int maxRetries = 10)
         {
             int retryCount = 0;
-            int delayMs = 1000;
+            int delayMs = 2000; // Start with 2 seconds
 
             while (retryCount < maxRetries)
             {
@@ -82,11 +82,10 @@ namespace FigmaImporter.V2.Core
 
                     if ((int)response.StatusCode == 429)
                     {
-                        // Clean up error logging for 429 since it's an expected retry scenario
-                        Debug.LogWarning($"<color=orange>[Figma v2.1] Rate limit hit (429).</color> Figma is busy. Waiting <b>{delayMs}ms</b> before retry {retryCount + 1}/{maxRetries}...");
+                        Debug.LogWarning($"<color=orange>[Figma v2.1] Rate limit hit (429).</color> Figma is busy. Waiting <b>{delayMs/1000f}s</b> before retry {retryCount + 1}/{maxRetries}...");
                         await Task.Delay(delayMs);
                         retryCount++;
-                        delayMs = (int)(delayMs * 1.5f) + 500; // Slightly less aggressive backoff but with a solid base
+                        delayMs *= 2; // Exponential backoff: 2s, 4s, 8s, 16s...
                         continue;
                     }
 
