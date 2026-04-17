@@ -14,7 +14,7 @@ namespace FigmaImporter.V2.Core
 
         public FigmaAPIClient(string accessToken)
         {
-            _accessToken = accessToken?.Trim();
+            _accessToken = accessToken?.Trim() ?? string.Empty;
             if (!string.IsNullOrEmpty(_accessToken))
             {
                 Debug.Log($"<b>[Figma Debug]</b> API Client (UnityWebRequest) initialized. Token length: {_accessToken.Length}");
@@ -90,6 +90,8 @@ namespace FigmaImporter.V2.Core
 
         private async Task<string> ExecuteRequest(string url, CancellationToken ct)
         {
+            if (string.IsNullOrEmpty(url)) return null;
+            
             int retryCount = 0;
             int maxRetries = 10;
             int delayMs = 2000;
@@ -100,7 +102,10 @@ namespace FigmaImporter.V2.Core
 
                 using (UnityWebRequest request = UnityWebRequest.Get(url))
                 {
-                    request.SetRequestHeader("X-Figma-Token", _accessToken);
+                    if (!string.IsNullOrEmpty(_accessToken))
+                    {
+                        request.SetRequestHeader("X-Figma-Token", _accessToken);
+                    }
                     request.SetRequestHeader("Accept", "application/json");
                     request.SetRequestHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Unity/2.1");
 
@@ -118,7 +123,7 @@ namespace FigmaImporter.V2.Core
 
                     if (request.result == UnityWebRequest.Result.Success)
                     {
-                        return request.downloadHandler?.text;
+                        return (request.downloadHandler != null) ? request.downloadHandler.text : string.Empty;
                     }
 
                     if (request.responseCode == 429)
@@ -130,8 +135,13 @@ namespace FigmaImporter.V2.Core
                         continue;
                     }
 
-                    string errorContent = request.downloadHandler != null ? request.downloadHandler.text : "No content";
-                    Debug.LogError($"[Figma API Error] {request.responseCode}: {request.error}\nContent: {errorContent}");
+                    string errorMsg = "Unknown Error";
+                    try { errorMsg = request.error; } catch {}
+                    
+                    string errorContent = "No content";
+                    try { if (request.downloadHandler != null) errorContent = request.downloadHandler.text; } catch {}
+
+                    Debug.LogError($"[Figma API Error] {request.responseCode}: {errorMsg}\nContent: {errorContent}");
                     return null;
                 }
             }
