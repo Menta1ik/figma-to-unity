@@ -78,12 +78,12 @@ public class FontMappingTableEditor : Editor
             EditorGUILayout.EndHorizontal();
 
             // Поля ввода без дополнительного отступа
-            EditorGUILayout.PropertyField(element.FindPropertyRelative("fontPostScriptName"), new GUIContent("PostScript Name"));
-            EditorGUILayout.PropertyField(element.FindPropertyRelative("figmaFontFamily"), new GUIContent("Figma Family"));
-            EditorGUILayout.PropertyField(element.FindPropertyRelative("figmaFontWeight"), new GUIContent("Figma Weight"));
+            EditorGUILayout.PropertyField(element.FindPropertyRelative("fontPostScriptName"), new GUIContent("PostScript Name (Optional)"));
+            EditorGUILayout.PropertyField(element.FindPropertyRelative("figmaFontFamily"), new GUIContent("Figma Font Family"));
+            EditorGUILayout.PropertyField(element.FindPropertyRelative("figmaFontWeight"), new GUIContent("Figma Font Weight (0=Any)"));
             
-            EditorGUILayout.Space(2);
-            EditorGUILayout.PropertyField(assetProp, new GUIContent("Target TMP Asset"));
+            EditorGUILayout.Space(5);
+            EditorGUILayout.PropertyField(assetProp, new GUIContent("→ Unity TMP Asset"));
 
             EditorGUILayout.EndVertical();
             EditorGUILayout.Space(2);
