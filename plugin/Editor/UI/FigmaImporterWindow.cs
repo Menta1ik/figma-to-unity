@@ -140,7 +140,7 @@ namespace FigmaImporter.V2.UI
                 return;
             }
             FigmaParser parser = new FigmaParser(_accessToken, _fileId);
-            parser.FontMapTable = _fontMap;
+            parser.FontMapTable = _fontMapping;
             parser.Settings = _settings;
             await parser.RunFontAudit(_nodeId);
         }
