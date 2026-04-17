@@ -10,6 +10,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["unity", "figma", "ugui", "importer", "game-ui"],
-  "author": "Menta1ik",
+  "author": "BrainySoftware OU",
   "license": "ISC"
 }

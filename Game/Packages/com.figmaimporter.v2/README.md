@@ -119,8 +119,4 @@ Copy the `com.figmaimporter.v2` folder into your project's `Packages/` directory
 3.  **Зависимости:** Пакет автоматически подтянет `TextMeshPro` и `Unity UI`, если они еще не установлены в проекте.
 
 ---
-
-**BrainySoft © 2026**
-
----
-**BrainySoft © 2026**
+**BrainySoftware OU © 2026**

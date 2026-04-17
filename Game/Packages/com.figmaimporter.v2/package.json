@@ -5,11 +5,11 @@
   "description": "Figma to Unity UI Pipeline with Non-Destructive Update architecture.",
   "unity": "2021.3",
   "author": {
-    "name": "BrainySoft"
+    "name": "BrainySoftware OU",
+    "url": "https://github.com/Menta1ik"
   },
   "dependencies": {
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.modules.ui": "1.0.0"
   }
-}
 
