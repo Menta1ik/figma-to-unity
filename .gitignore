@@ -3,6 +3,7 @@
 
 # Allow the plugin folder and .gitignore
 !/plugin/
+/plugin/docs/
 !.gitignore
 !/README.md
 
