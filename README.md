@@ -17,10 +17,10 @@
 
 ## 📚 Документация
 
-Подробные инструкции находятся в папке `plugin/docs/`:
-- [Руководство разработчика v2.2 (Setup & Usage)](plugin/docs/DEVELOPER_MANUAL_v2.2.md)
-- [Техническая концепция и Smart Sync](plugin/docs/CONCEPTS_v2.2.md)
-- [Чек-лист для дизайнеров](plugin/docs/FigmaDirectImporter_Manual.md)
+Подробные инструкции находятся в папке `plugin/Manuals/`:
+- [Руководство разработчика (Setup & Usage)](plugin/Manuals/DEVELOPER_MANUAL.md)
+- [Техническая концепция и Smart Sync](plugin/Manuals/CONCEPTS.md)
+- [Чек-лист для дизайнеров](plugin/Manuals/DESIGNER_GUIDE.md)
 
 ---
 
