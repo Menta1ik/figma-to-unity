@@ -4,7 +4,7 @@ vault: docs/
 status: isolation
 ---
 
-# 📖 Полное руководство разработчика: Figma Importer v2.2 (Stable)
+# 📖 Полное руководство разработчика: Figma Importer v2.2.5 (Stable)
 
 Данное руководство содержит исчерпывающую информацию по настройке и эксплуатации системы импорта UI из Figma в Unity uGUI. 
 
@@ -114,4 +114,4 @@ status: isolation
 
 ---
 **BrainySoftware OU © 2026**
-**Версия документа:** 2.2.0-STABLE
+**Версия документа:** 2.2.5-STABLE

@@ -59,7 +59,7 @@ namespace FigmaImporter.V2.UI
                 }
                 else
                 {
-                    Debug.LogError($"[Figma v2.1] Файл не найден: {path}");
+                    Debug.LogError($"[Figma v2.2.5] Файл не найден: {path}");
                     manager.UpdateStatus("Ошибка: Файл не найден.");
                     return;
                 }
@@ -80,11 +80,11 @@ namespace FigmaImporter.V2.UI
                 });
 
                 manager.UpdateStatus("Синхронизация завершена!");
-                Debug.Log("<color=green>[Figma v2.1]</color> Успешно!");
+                Debug.Log("<color=green>[Figma v2.2.5]</color> Успешно!");
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[Figma v2.1] Ошибка: {e.Message}");
+                Debug.LogError($"[Figma v2.2.5] Ошибка: {e.Message}");
                 manager.UpdateStatus("Ошибка синхронизации.");
             }
             finally
@@ -102,7 +102,7 @@ namespace FigmaImporter.V2.UI
             {
                 Undo.DestroyObjectImmediate(parent.GetChild(i).gameObject);
             }
-            Debug.Log("[Figma v2.1] Дочерние объекты очищены!");
+            Debug.Log("[Figma v2.2.5] Дочерние объекты очищены!");
         }
     }
 }

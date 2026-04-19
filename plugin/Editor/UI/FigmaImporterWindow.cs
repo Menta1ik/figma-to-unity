@@ -35,7 +35,7 @@ namespace FigmaImporter.V2.UI
         [MenuItem("Figma Importer/Sync & Reskin Dashboard")]
         public static void ShowWindow()
         {
-            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.1");
+            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.2.5");
             window.minSize = new Vector2(350, 450);
         }
 
@@ -45,7 +45,7 @@ namespace FigmaImporter.V2.UI
             EditorGUIUtility.labelWidth = 160f;
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.1", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.2.5", EditorStyles.boldLabel);
             
             // --- SECTION 1: CONNECTION ---
             EditorGUILayout.BeginVertical("box");
@@ -72,7 +72,7 @@ namespace FigmaImporter.V2.UI
             // Help link
             if (GUILayout.Button("📖 Open Developer Manual (Documentation)"))
             {
-                Debug.Log("[Figma Importer] Documentation is located in 'docs/DEVELOPER_MANUAL_v2.1.md' in your project root.");
+                Debug.Log("[Figma Importer] Documentation is located in 'Packages/com.figmaimporter.v2/Manuals/' folder.");
             }
 
             EditorGUILayout.BeginVertical("box");
@@ -252,7 +252,7 @@ namespace FigmaImporter.V2.UI
                     string jsonPath = Path.Combine(Application.dataPath, "lobby_figma.json");
                     if (!File.Exists(jsonPath))
                     {
-                        Debug.LogError($"[Figma v2.1] Local file not found: {jsonPath}");
+                        Debug.LogError($"[Figma v2.2.5] Local file not found: {jsonPath}");
                         return;
                     }
                     jsonContent = File.ReadAllText(jsonPath);
@@ -290,7 +290,7 @@ namespace FigmaImporter.V2.UI
             {
                 Undo.DestroyObjectImmediate(_rootCanvas.GetChild(i).gameObject);
             }
-            Debug.Log("[Figma v2.1] Canvas cleared successfully!");
+            Debug.Log("[Figma v2.2.5] Canvas cleared successfully!");
         }
         private async void RunInteractiveTest()
         {

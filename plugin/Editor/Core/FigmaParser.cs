@@ -333,7 +333,7 @@ namespace FigmaImporter.V2.Core
 
             string spriteFolder = Settings != null ? Settings.baseSpritesPath : "UI/Generated/Sprites";
 
-            // v2.2.1: Parallel download with throttling
+            // v2.2.5: Parallel download with throttling
             var semaphore = new SemaphoreSlim(10);
             int completed = 0;
             int totalDownloads = _handlerContext.ImageNodesToDownload.Count(n => links.ContainsKey(n.id));
@@ -498,7 +498,7 @@ namespace FigmaImporter.V2.Core
                 {
                     GameObject go = kvp.Value.gameObject;
                     
-                    // SAFE DELETE MODE (v2.2.1)
+                    // SAFE DELETE MODE (v2.2.5)
                     go.SetActive(false);
                     var orphan = go.GetComponent<FigmaOrphanedElement>();
                     if (orphan == null) orphan = go.AddComponent<FigmaOrphanedElement>();
