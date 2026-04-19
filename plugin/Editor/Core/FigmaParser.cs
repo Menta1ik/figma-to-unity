@@ -254,7 +254,10 @@ namespace FigmaImporter.V2.Core
                 catch (Exception e) { Debug.LogError($"[Figma v2.3.0] Error in {handler.GetType().Name} for {node.name}: {e.Message}"); }
             }
 
-            if (node.isMask || node.clipsContent) _deferredMasks.Add((node, element));
+            if (node.isMask || node.clipsContent)
+            {
+                _deferredMasks.Add((node, element));
+            }
 
             if (node.children != null)
             {
@@ -319,39 +322,89 @@ namespace FigmaImporter.V2.Core
 
         /// <summary>
         /// Finalizes mask components after the entire hierarchy is created.
-        /// Figma masks affect siblings, while Unity masks affect children.
-        /// current logic approximates this by putting the mask on the parent.
+        /// Figma masks affect subsequent siblings, while Unity masks affect children.
+        /// We solve this by creating a container for the mask and its siblings.
         /// </summary>
         private void ApplyDeferredMasks()
         {
             if (_deferredMasks == null || _deferredMasks.Count == 0) return;
 
-            foreach (var (node, element) in _deferredMasks)
+            foreach (var (maskNode, maskElement) in _deferredMasks)
             {
-                if (element == null) continue;
-                var go = element.gameObject;
+                if (maskElement == null || maskElement.gameObject == null) continue;
 
-                // Case 1: Figma "isMask" property
-                // We apply Unity Mask to the PARENT, which masks all its children.
-                if (node.isMask)
+                var maskGo = maskElement.gameObject;
+                var maskTransform = maskGo.transform;
+                var parentTransform = maskTransform.parent;
+
+                if (parentTransform == null) continue;
+
+                // Handle standard Frame clipping (clipsContent)
+                if (!maskNode.isMask && maskNode.clipsContent)
                 {
-                    var parent = go.transform.parent;
-                    if (parent != null)
+                    if (maskGo.GetComponent<RectMask2D>() == null && maskGo.GetComponent<Mask>() == null)
                     {
-                        var pgo = parent.gameObject;
-                        if (pgo.GetComponent<Mask>() == null && pgo.GetComponent<RectMask2D>() == null)
-                        {
-                            // Mask needs an Image component to define the area (even if invisible)
-                            if (pgo.GetComponent<Image>() == null) pgo.AddComponent<Image>().color = new Color(1, 1, 1, 0);
-                            var mask = pgo.AddComponent<Mask>();
-                            mask.showMaskGraphic = false;
-                        }
+                        maskGo.AddComponent<RectMask2D>();
                     }
+                    continue;
                 }
-                // Case 2: Figma "clipsContent" (standard Frame clipping)
-                else if (node.clipsContent && go.GetComponent<RectMask2D>() == null && go.GetComponent<Mask>() == null)
+
+                // Handle Figma Mask (isMask: true)
+                if (maskNode.isMask)
                 {
-                    go.AddComponent<RectMask2D>();
+                    int maskSiblingIndex = maskTransform.GetSiblingIndex();
+                    
+                    // Create container for mask and its siblings
+                    var containerGo = new GameObject($"[Mask] {maskGo.name}");
+                    var containerRect = containerGo.AddComponent<RectTransform>();
+                    containerGo.transform.SetParent(parentTransform, false);
+                    containerGo.transform.SetSiblingIndex(maskSiblingIndex);
+
+                    // Sync RectTransform
+                    var maskRect = maskGo.GetComponent<RectTransform>();
+                    if (maskRect != null)
+                        LayoutUtility.SyncRectTransform(maskRect, containerRect);
+
+                    // Add Mask or RectMask2D
+                    bool isRect = (maskNode.type == "RECTANGLE" || maskNode.type == "FRAME") && maskNode.cornerRadius == 0f;
+                    if (isRect)
+                    {
+                        containerGo.AddComponent<RectMask2D>();
+                    }
+                    else
+                    {
+                        var maskImage = containerGo.AddComponent<Image>();
+                        maskImage.color = new Color(1, 1, 1, 0.01f); // Near invisible
+                        maskImage.raycastTarget = false;
+                        
+                        var sourceImage = maskGo.GetComponent<Image>();
+                        if (sourceImage != null && sourceImage.sprite != null)
+                        {
+                            maskImage.sprite = sourceImage.sprite;
+                            maskImage.type = sourceImage.type;
+                        }
+                        
+                        containerGo.AddComponent<Mask>().showMaskGraphic = false;
+                    }
+
+                    // Move original mask node inside
+                    maskTransform.SetParent(containerRect, false);
+
+                    // Move all SUBSEQUENT siblings inside the masked container
+                    var siblingsToMask = new List<Transform>();
+                    for (int i = maskSiblingIndex + 1; i < parentTransform.childCount; i++)
+                    {
+                        var sibling = parentTransform.GetChild(i);
+                        if (sibling != containerRect.transform)
+                            siblingsToMask.Add(sibling);
+                    }
+
+                    foreach (var sibling in siblingsToMask)
+                    {
+                        sibling.SetParent(containerRect, true);
+                    }
+
+                    Debug.Log($"[Figma v2.3.1] Applied Mask container for '{maskGo.name}' with {siblingsToMask.Count} children.");
                 }
             }
         }
