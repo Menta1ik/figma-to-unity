@@ -14,6 +14,7 @@ namespace FigmaImporter.V2.Utils
 
         private void OnGUI()
         {
+            if (GUI.skin == null) return;
             GUILayout.Label("uGUI Anomaly Radar", FigmaEditorStyles.BoldLabel);
             EditorGUILayout.Space();
 

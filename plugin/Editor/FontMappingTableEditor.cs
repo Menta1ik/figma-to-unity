@@ -12,6 +12,7 @@ public class FontMappingTableEditor : Editor
 {
     public override void OnInspectorGUI()
     {
+        if (GUI.skin == null) return;
         serializedObject.Update();
 
         EditorGUILayout.Space(10);

@@ -12,6 +12,10 @@ namespace FigmaImporter.V2.UI
         public override void OnInspectorGUI()
         {
             if (target == null) return;
+            
+            // Critical check for EditorStyles availability during domain reloads
+            if (GUI.skin == null) return;
+
             base.OnInspectorGUI();
 
             FigmaSyncManager manager = (FigmaSyncManager)target;

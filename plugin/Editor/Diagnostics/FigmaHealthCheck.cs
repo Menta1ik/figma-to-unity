@@ -33,6 +33,7 @@ namespace FigmaImporter.V2.Editor.Diagnostics
 
         private void OnGUI()
         {
+            if (GUI.skin == null) return;
             EditorGUILayout.BeginVertical();
             GUILayout.Label("Figma-to-Unity Pipeline Audit (v2.3.0)", FigmaEditorStyles.BoldLabel);
             

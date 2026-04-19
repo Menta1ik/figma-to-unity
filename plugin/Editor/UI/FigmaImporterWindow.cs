@@ -42,6 +42,8 @@ namespace FigmaImporter.V2.UI
 
         private void OnGUI()
         {
+            if (GUI.skin == null) return;
+            
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
             EditorGUIUtility.labelWidth = 160f;
 
