@@ -4,6 +4,7 @@ using FigmaImporter.V2;
 using System.Collections.Generic;
 using TMPro;
 using System.Linq;
+using FigmaImporter.V2.Editor.Utils;
 
 [CustomEditor(typeof(FontMappingTable))]
 [CanEditMultipleObjects]
@@ -14,7 +15,7 @@ public class FontMappingTableEditor : Editor
         serializedObject.Update();
 
         EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField("🪐 Typography Sync Config", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("🪐 Typography Sync Config", FigmaEditorStyles.BoldLabel);
         
         EditorGUILayout.HelpBox("Specify how to replace fonts from Figma.\n" +
                                  "Use the button below to automatically search for assets in the project.", MessageType.Info);
@@ -30,7 +31,7 @@ public class FontMappingTableEditor : Editor
         
         // Global Fallback
         EditorGUILayout.BeginVertical("helpBox");
-        EditorGUILayout.LabelField("Fallback Font", EditorStyles.miniBoldLabel);
+        EditorGUILayout.LabelField("Fallback Font", FigmaEditorStyles.MiniBoldLabel);
         EditorGUILayout.PropertyField(serializedObject.FindProperty("GlobalFallbackFont"), new GUIContent("Global Fallback"));
         EditorGUILayout.EndVertical();
 
@@ -39,7 +40,7 @@ public class FontMappingTableEditor : Editor
         var mappingsProp = serializedObject.FindProperty("Mappings");
         
         EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField($"Mapping List ({mappingsProp.arraySize})", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField($"Mapping List ({mappingsProp.arraySize})", FigmaEditorStyles.BoldLabel);
         if (GUILayout.Button("+ Add New", GUILayout.Width(100)))
         {
             mappingsProp.InsertArrayElementAtIndex(mappingsProp.arraySize);
@@ -66,7 +67,7 @@ public class FontMappingTableEditor : Editor
             string title = assetProp.objectReferenceValue != null ? 
                 $"[{i}] {assetProp.objectReferenceValue.name}" : $"[{i}] New Mapping";
             
-            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(title, FigmaEditorStyles.BoldLabel);
             
             if (GUILayout.Button("×", GUILayout.Width(25)))
             {

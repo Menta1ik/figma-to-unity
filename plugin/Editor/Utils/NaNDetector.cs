@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using FigmaImporter.V2.Editor.Utils;
 
 namespace FigmaImporter.V2.Utils
 {
@@ -13,7 +14,7 @@ namespace FigmaImporter.V2.Utils
 
         private void OnGUI()
         {
-            GUILayout.Label("uGUI Anomaly Radar", EditorStyles.boldLabel);
+            GUILayout.Label("uGUI Anomaly Radar", FigmaEditorStyles.BoldLabel);
             EditorGUILayout.Space();
 
             if (GUILayout.Button("📡 SCAN SCENE", GUILayout.Height(40)))

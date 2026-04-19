@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FigmaImporter.V2.Core;
 using FigmaImporter.V2.Data;
+using FigmaImporter.V2.Editor.Utils;
 
 namespace FigmaImporter.V2.UI
 {
@@ -45,11 +46,11 @@ namespace FigmaImporter.V2.UI
             EditorGUIUtility.labelWidth = 160f;
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.3.0", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.3.0", FigmaEditorStyles.BoldLabel);
             
             // --- SECTION 1: CONNECTION ---
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("Step 1: Connection & Config", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Step 1: Connection & Config", FigmaEditorStyles.BoldLabel);
             EditorGUILayout.HelpBox("Provide the Figma URL or File ID. The plugin will automatically extract the Node ID. The Access Token (PAT) is from your Figma account settings.", MessageType.None);
             
             string newFileId = EditorGUILayout.TextField("Figma URL / File ID", _fileId);
@@ -76,7 +77,7 @@ namespace FigmaImporter.V2.UI
             }
 
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("Step 2: Resources & Target", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Step 2: Resources & Target", FigmaEditorStyles.BoldLabel);
             EditorGUILayout.HelpBox("Font Mapping links Figma fonts with TextMeshPro assets. Root Canvas is the scene object where UI will be built.", MessageType.None);
             
             _fontMapping = (FontMappingTable)EditorGUILayout.ObjectField("Font Mapping", _fontMapping, typeof(FontMappingTable), false);
@@ -94,7 +95,7 @@ namespace FigmaImporter.V2.UI
             // --- SECTION 3: SYNC ---
             EditorGUILayout.Space();
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("Step 3: Sync & Generate", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Step 3: Sync & Generate", FigmaEditorStyles.BoldLabel);
             EditorGUILayout.HelpBox(
             "🚀 QUICK START GUIDE:\n" +
             "Step 1: Paste Figma URL and Access Token below.\n" +
@@ -135,7 +136,7 @@ namespace FigmaImporter.V2.UI
             if (!_isProcessing)
             {
                 EditorGUILayout.BeginVertical("box");
-                EditorGUILayout.LabelField("Utilities", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Utilities", FigmaEditorStyles.BoldLabel);
                 if (GUILayout.Button("🧹 Clear Root Canvas"))
                 {
                     if (EditorUtility.DisplayDialog("Warning", "This will delete all children of the root canvas. Continue?", "Delete", "Cancel"))
@@ -217,7 +218,7 @@ namespace FigmaImporter.V2.UI
         private void DrawHeader(string text)
         {
             EditorGUILayout.Space(10);
-            GUILayout.Label(text, EditorStyles.boldLabel);
+            GUILayout.Label(text, FigmaEditorStyles.BoldLabel);
         }
 
         private async void RunSync()

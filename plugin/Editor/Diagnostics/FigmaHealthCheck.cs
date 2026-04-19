@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using UnityEngine.UI;
+using FigmaImporter.V2.Editor.Utils;
 
 namespace FigmaImporter.V2.Editor.Diagnostics
 {
@@ -33,7 +34,7 @@ namespace FigmaImporter.V2.Editor.Diagnostics
         private void OnGUI()
         {
             EditorGUILayout.BeginVertical();
-            GUILayout.Label("Figma-to-Unity Pipeline Audit (v2.3.0)", EditorStyles.boldLabel);
+            GUILayout.Label("Figma-to-Unity Pipeline Audit (v2.3.0)", FigmaEditorStyles.BoldLabel);
             
             if (GUILayout.Button("Run Full Audit", GUILayout.Height(30)))
             {
@@ -54,7 +55,7 @@ namespace FigmaImporter.V2.Editor.Diagnostics
             EditorGUILayout.BeginVertical(GUI.skin.box);
             EditorGUILayout.BeginHorizontal();
             
-            var style = new GUIStyle(EditorStyles.boldLabel);
+            var style = new GUIStyle(FigmaEditorStyles.BoldLabel);
             style.normal.textColor = result.Color;
             
             EditorGUILayout.LabelField($"[{result.Status}] {result.Name}", style);

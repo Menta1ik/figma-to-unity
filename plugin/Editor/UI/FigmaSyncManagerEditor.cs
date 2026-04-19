@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 using FigmaImporter.V2.Core;
+using FigmaImporter.V2.Editor.Utils;
 
 namespace FigmaImporter.V2.UI
 {
@@ -10,17 +11,21 @@ namespace FigmaImporter.V2.UI
     {
         public override void OnInspectorGUI()
         {
+            if (target == null) return;
             base.OnInspectorGUI();
 
             FigmaSyncManager manager = (FigmaSyncManager)target;
 
             EditorGUILayout.Space();
-            GUILayout.Label("Запуск импорта", EditorStyles.boldLabel);
+            
+            // Safe Header
+            GUILayout.Label("Запуск импорта", FigmaEditorStyles.BoldLabel);
+            
             GUI.backgroundColor = new Color(0.2f, 0.8f, 0.4f);
 
             if (GUILayout.Button("🚀 СОБРАТЬ UI И СКАЧАТЬ КАРТИНКИ", GUILayout.Height(50)))
             {
-                EditorApplication.delayCall += () => RunSync(manager);
+                EditorApplication.delayCall += () => { if (manager != null) RunSync(manager); };
             }
 
             GUI.backgroundColor = Color.white;
