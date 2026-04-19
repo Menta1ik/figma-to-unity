@@ -1,12 +1,13 @@
 using UnityEngine;
 using UnityEditor;
-using FigmaImporter.Runtime;
-using FigmaImporter.Editor.Core;
-using FigmaImporter.Editor.Core.Handlers;
+using FigmaImporter.V2.Runtime;
+using FigmaImporter.V2.Core;
+using FigmaImporter.V2.Core.Handlers;
+using FigmaImporter.V2.Data;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-namespace FigmaImporter.Editor.Diagnostics
+namespace FigmaImporter.V2.Editor.Diagnostics
 {
     public class FigmaHealthCheck : EditorWindow
     {
