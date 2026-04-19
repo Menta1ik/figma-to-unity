@@ -59,7 +59,7 @@ namespace FigmaImporter.V2.Core
         {
             if (string.IsNullOrEmpty(_accessToken) || string.IsNullOrEmpty(_fileId))
             {
-                Debug.LogError("[FigmaParser] Cannot run Sync without Token and File ID.");
+                Debug.LogError("[Figma v2.3.0] Cannot run Sync without Token and File ID.");
                 return;
             }
 
@@ -199,7 +199,7 @@ namespace FigmaImporter.V2.Core
                 await imageService.SyncImagesAsync(target.name, _handlerContext, _sessionCache, null, ct);
             }
 
-            Debug.Log($"<color=cyan>[Figma Reskin] Reskin completed for {target.name}!</color>");
+            Debug.Log($"<color=cyan>[Figma v2.3.0] Reskin completed for {target.name}!</color>");
         }
 
         public async Task RunFontAudit(string nodeId = "", CancellationToken ct = default)
@@ -251,7 +251,7 @@ namespace FigmaImporter.V2.Core
             foreach (var handler in _handlers)
             {
                 try { if (handler.CanHandle(node)) handler.Apply(node, element, _handlerContext); }
-                catch (Exception e) { Debug.LogError($"[FigmaImporter] Error in {handler.GetType().Name} for {node.name}: {e.Message}"); }
+                catch (Exception e) { Debug.LogError($"[Figma v2.3.0] Error in {handler.GetType().Name} for {node.name}: {e.Message}"); }
             }
 
             if (node.isMask || node.clipsContent) _deferredMasks.Add((node, element));
