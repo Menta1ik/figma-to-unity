@@ -23,16 +23,25 @@ namespace FigmaImporter.V2.Core.Handlers
 
             UpdateVisuals(target, newData);
 
-            var children = GetFigmaChildren(target.transform);
-            
             if (newData.children != null)
             {
                 foreach (var childNode in newData.children)
                 {
-                    var matchingChild = children.FirstOrDefault(c => c.name == childNode.name);
-                    if (matchingChild != null)
+                    // Find matching child by Figma ID
+                    Transform matchedChild = null;
+                    foreach (Transform t in target.transform)
                     {
-                        ApplyReskin(matchingChild.gameObject, childNode);
+                        var childElement = t.GetComponent<FigmaElement>();
+                        if (childElement != null && childElement.FigmaNodeId == childNode.id)
+                        {
+                            matchedChild = t;
+                            break;
+                        }
+                    }
+
+                    if (matchedChild != null)
+                    {
+                        ApplyReskin(matchedChild.gameObject, childNode);
                     }
                 }
             }
@@ -40,26 +49,39 @@ namespace FigmaImporter.V2.Core.Handlers
 
         private void UpdateVisuals(GameObject go, FigmaNode node)
         {
+            // 1. Text Update
+            if (node.type == "TEXT" && !string.IsNullOrEmpty(node.characters))
+            {
+                var tmp = go.GetComponent<TMP_Text>();
+                if (tmp != null)
+                {
+                    tmp.text = node.characters;
+                    
+                    // Update text color from fills
+                    if (node.fills != null && node.fills.Count > 0 && node.fills[0].color != null)
+                    {
+                        tmp.color = node.fills[0].color.ToUnityColor(node.fills[0].opacity);
+                    }
+
+                    if (node.style != null)
+                    {
+                        tmp.fontSize = node.style.fontSize;
+                    }
+                }
+            }
+
+            // 2. Image Update (Color tint)
             var img = go.GetComponent<Image>();
             if (img != null && node.fills != null && node.fills.Count > 0)
             {
                 var fill = node.fills[0];
-                if (fill.color != null)
+                if (fill.type == "SOLID" && fill.color != null)
                 {
-                    img.color = new Color(fill.color.r, fill.color.g, fill.color.b, fill.opacity);
+                    img.color = fill.color.ToUnityColor(fill.opacity);
                 }
             }
 
-            var text = go.GetComponent<TextMeshProUGUI>();
-            if (text != null && !string.IsNullOrEmpty(node.characters))
-            {
-                text.text = node.characters;
-                if (node.style != null)
-                {
-                    text.fontSize = node.style.fontSize;
-                }
-            }
-
+            // 3. Update Sync Meta
             var figmaElement = go.GetComponent<FigmaElement>();
             if (figmaElement == null)
             {
@@ -67,16 +89,13 @@ namespace FigmaImporter.V2.Core.Handlers
             }
             figmaElement.FigmaNodeId = node.id;
             figmaElement.LastUpdateHash = node.computedHash;
-        }
 
-        private List<Transform> GetFigmaChildren(Transform parent)
-        {
-            var list = new List<Transform>();
-            for (int i = 0; i < parent.childCount; i++)
+            // 4. Queuing images for download if they changed
+            if (node.fills != null && node.fills.Any(f => f.type == "IMAGE"))
             {
-                list.Add(parent.GetChild(i));
+                _context.ImageNodesToDownload.Add(node);
             }
-            return list;
         }
     }
 }
+

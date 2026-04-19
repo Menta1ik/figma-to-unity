@@ -20,14 +20,19 @@ namespace FigmaImporter.V2.Core.Handlers
             if (type == "VECTOR" || type == "BOOLEAN_OPERATION" || type == "STAR" || 
                 type == "REGULAR_POLYGON" || type == "POLYGON" || type == "ELLIPSE") return true;
 
-            // Component/Instance/Group/Frame can be icons, handled for flattening.
-            if (type == "COMPONENT" || type == "INSTANCE" || type == "GROUP" || type == "FRAME")
-            {
-                return IsIconCandidate(node);
-            }
+            // Containers might be icons (candidates for flattening)
+            if (type == "COMPONENT" || type == "INSTANCE" || type == "GROUP" || type == "FRAME") return true;
 
             return false;
         }
+
+        // New overload or logic to use context for better matching in CanHandle
+        // Wait, CanHandle is defined in Interface without context. 
+        // We will move the IconCandidate check into Apply, OR we use a trick.
+        // Actually, the interface is IFigmaComponentHandler { bool CanHandle(FigmaNode node); void Apply(...) }
+        // If we can't change CanHandle signature, we let it return true for potential candidates
+        // and do the final check in Apply.
+
 
         private bool IsIconCandidate(FigmaNode node)
         {
@@ -53,6 +58,29 @@ namespace FigmaImporter.V2.Core.Handlers
 
         public void Apply(FigmaNode node, FigmaElement target, FigmaHandlerContext context)
         {
+            string type = node.type.ToUpper();
+            bool isContainer = type == "COMPONENT" || type == "INSTANCE" || type == "GROUP" || type == "FRAME";
+            bool isIcon = false;
+
+            if (isContainer)
+            {
+                isIcon = IsIconCandidateCached(node, context);
+                
+                // If container is NOT an icon and has no visible fills/strokes, we don't need an Image component
+                bool hasVisibleFills = node.fills != null && node.fills.Any(f => f.visible != false);
+                bool hasVisibleStrokes = node.strokes != null && node.strokes.Any(s => s.visible != false);
+                
+                if (!isIcon && !hasVisibleFills && !hasVisibleStrokes)
+                {
+                    var existingImg = target.GetComponent<Image>();
+                    if (existingImg != null && (context.Settings == null || !context.Settings.preserveManualComponents))
+                    {
+                        Object.DestroyImmediate(existingImg);
+                    }
+                    return;
+                }
+            }
+
             var image = target.GetComponent<Image>();
             if (image == null) image = target.gameObject.AddComponent<Image>();
 
@@ -60,7 +88,6 @@ namespace FigmaImporter.V2.Core.Handlers
             bool hasImageFill = hasFills && node.fills.Any(f => f.type == "IMAGE");
             bool hasGradientFill = hasFills && node.fills.Any(f => f.type.StartsWith("GRADIENT"));
             
-            string type = node.type.ToUpper();
             bool isComplexVector = type == "VECTOR" || type == "STAR" || type == "REGULAR_POLYGON" || 
                                    type == "POLYGON" || type == "ELLIPSE" || type == "BOOLEAN_OPERATION";
             
@@ -69,24 +96,17 @@ namespace FigmaImporter.V2.Core.Handlers
             bool hasStroke = node.strokes != null && node.strokes.Any(s => s.visible != false);
             bool hasCornerRadius = node.cornerRadius > 0f;
 
-            // DOWNLOAD CRITERIA (highly selective):
-            // 1. Real raster image exists in fill (IMAGE).
-            // 2. Complex vector primitive (requires PNG export for accuracy).
-            // 3. Container explicitly marked as icon (IsIconCandidate).
-            // 4. Rectangle with gradient (Unity UI doesn't support gradients natively).
-            // 5. Has stroke or corner radius (Unity UI Image lacks native support).
+            // DOWNLOAD CRITERIA
             bool shouldDownload = hasImageFill || 
-                                 (isComplexVector && (hasGradientFill || hasFills || hasStroke)) || 
+                                 (isComplexVector && (hasFills || hasStroke)) || 
                                  (isRectangle && (hasGradientFill || hasStroke || hasCornerRadius)) ||
-                                 IsIconCandidate(node);
+                                 isIcon;
 
             if (shouldDownload)
             {
-                // Keep transparent until download complete!
                 image.color = new Color(1f, 1f, 1f, 0f);
                 context.ImageNodesToDownload.Add(node);
                 
-                // List of reasons for the log:
                 string reason = hasImageFill ? "IMAGE Fill" : 
                                (isComplexVector ? "Complex Vector" : 
                                (hasStroke ? "Has Stroke" :
@@ -94,11 +114,10 @@ namespace FigmaImporter.V2.Core.Handlers
                                (isRectangle && hasGradientFill ? "Gradient Rectangle" : "ICON Candidate"))));
 
                 Debug.Log($"[FigmaImporter] Node '{node.name}' ({type}) queued for download. Reason: {reason}");
-                
                 return;
             }
 
-            // Otherwise, apply solid color
+            // Solid Color
             if (hasFills && !hasStroke)
             {
                 var solidFill = node.fills.FirstOrDefault(f => f.type == "SOLID" && f.visible != false);
@@ -111,27 +130,19 @@ namespace FigmaImporter.V2.Core.Handlers
                 }
             }
 
-            // If empty container (Frame/Group) and not an icon candidate - remove Image
-            if (!hasFills && !hasStroke && !isComplexVector && !isRectangle)
-            {
-                bool preserve = context.Settings != null && context.Settings.preserveManualComponents;
-                if (!preserve) 
-                {
-                    UnityEngine.Object.DestroyImmediate(image);
-                }
-                else
-                {
-                    // If preserving, just make it invisible
-                    image.color = new Color(0, 0, 0, 0);
-                    image.sprite = null;
-                    image.raycastTarget = false;
-                }
-            }
-            else
-            {
-                image.color = new Color(0, 0, 0, 0);
-                image.sprite = null;
-            }
+            // Invisible/Fallback
+            image.color = new Color(0, 0, 0, 0);
+            image.sprite = null;
+        }
+
+        private bool IsIconCandidateCached(FigmaNode node, FigmaHandlerContext context)
+        {
+            if (context.IconCandidateCache.TryGetValue(node.id, out bool result))
+                return result;
+
+            result = IsIconCandidate(node);
+            context.IconCandidateCache[node.id] = result;
+            return result;
         }
     }
 }

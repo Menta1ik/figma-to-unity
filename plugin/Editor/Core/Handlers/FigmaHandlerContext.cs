@@ -13,5 +13,9 @@ namespace FigmaImporter.V2.Core.Handlers
         public List<FontMapping> FontMappings { get; set; } = new List<FontMapping>();
         public TMP_FontAsset GlobalFont { get; set; }
         public bool ForceUpdate { get; set; }
+
+        // Performance cache to avoid O(n^2) recursive checks in ImageHandler
+        public Dictionary<string, bool> IconCandidateCache { get; } = new Dictionary<string, bool>();
     }
 }
+

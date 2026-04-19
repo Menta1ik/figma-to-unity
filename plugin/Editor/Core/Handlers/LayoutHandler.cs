@@ -100,7 +100,9 @@ namespace FigmaImporter.V2.Core.Handlers
 
         private void ApplyContentSizeFitter(FigmaNode node, GameObject go)
         {
-            bool needsFitter = node.primaryAxisSizingMode == "AUTO" || node.counterAxisSizingMode == "AUTO";
+            bool hasAutoPrimary = node.primaryAxisSizingMode == "AUTO";
+            bool hasAutoCounter = node.counterAxisSizingMode == "AUTO";
+            bool needsFitter = hasAutoPrimary || hasAutoCounter;
             
             var fitter = go.GetComponent<ContentSizeFitter>();
             
@@ -114,24 +116,19 @@ namespace FigmaImporter.V2.Core.Handlers
 
             bool isHorizontal = node.layoutMode == "HORIZONTAL";
 
-            // Primary axis AUTO → fit
-            if (node.primaryAxisSizingMode == "AUTO")
-            {
-                if (isHorizontal)
-                    fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-                else
-                    fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            }
+            // Horizontal Fit
+            bool isHorizontalAuto = isHorizontal ? hasAutoPrimary : hasAutoCounter;
+            fitter.horizontalFit = isHorizontalAuto 
+                ? ContentSizeFitter.FitMode.PreferredSize 
+                : ContentSizeFitter.FitMode.Unconstrained;
 
-            // Counter axis AUTO → fit
-            if (node.counterAxisSizingMode == "AUTO")
-            {
-                if (isHorizontal)
-                    fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-                else
-                    fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            }
+            // Vertical Fit
+            bool isVerticalAuto = isHorizontal ? hasAutoCounter : hasAutoPrimary;
+            fitter.verticalFit = isVerticalAuto 
+                ? ContentSizeFitter.FitMode.PreferredSize 
+                : ContentSizeFitter.FitMode.Unconstrained;
         }
+
 
         /// <summary>
         /// Maps Figma primaryAxisAlignItems + counterAxisAlignItems to Unity TextAnchor.
