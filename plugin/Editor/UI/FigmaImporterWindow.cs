@@ -86,7 +86,7 @@ namespace FigmaImporter.V2.UI
             // Help link
             if (GUILayout.Button("📖 Open Developer Manual (Documentation)"))
             {
-                Debug.Log("[Figma Importer] Documentation is located in 'Packages/com.figmaimporter.v2/Manuals/' folder.");
+                Debug.Log("[Figma Importer] Documentation is located in 'Packages/com.figmaimporter.v2/docs/' folder.");
             }
 
             EditorGUILayout.BeginVertical("box");

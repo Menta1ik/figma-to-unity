@@ -47,9 +47,10 @@ Select the `package.json` file inside the `plugin` folder.
 ---
 
 ## 📚 Documentation
-*   [Developer Manual](Manuals/DEVELOPER_MANUAL.md) — Полное руководство по настройке и API.
-*   [Technical Concepts](Manuals/CONCEPTS.md) — Описание архитектуры и системы "паспортов".
-*   [Designer Guide](Manuals/DESIGNER_GUIDE.md) — Инструкции для дизайнеров (маркеры, нейминг).
+*   [User Guide](docs/DESIGNER_GUIDE.md) — Базовые инструкции для работы с плагином.
+*   [Developer Manual](docs/Developer/DEVELOPER_MANUAL.md) — Полное руководство по настройке и API.
+*   [Technical Concepts](docs/Developer/DEV_CONCEPTS.md) — Описание архитектуры и системы "паспортов".
+*   [Designer Guide](docs/Developer/DEV_DESIGNER_GUIDE.md) — Инструкции для дизайнеров (маркеры, нейминг).
 
 ---
 
