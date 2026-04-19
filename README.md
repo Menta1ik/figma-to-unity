@@ -1,4 +1,4 @@
-# 🌌 Figma to Unity Importer V2.2.5 (Hardening Release)
+# 🌌 Figma to Unity Importer V2.3.0 (Stable & Hardening)
 
 **Figma-to-Unity Pipeline** — профессиональный инструмент для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity uGUI. Плагин использует неразрушающую архитектуру **Smart Sync**, позволяя обновлять UI из Figma без потери ваших изменений (скриптов, анимаций) в Unity.
 
@@ -24,7 +24,7 @@
 
 ---
 
-## 🛠 Ключевые особенности v2.2.5 (Hardening)
+## 🛠 Ключевые особенности v2.3.0 (Stable)
 
 - **Soft-Delete Mode**: Объекты больше не удаляются физически, а выключаются и помечаются `FigmaOrphanedElement`.
 - **Auto Layout Support**: Полная трансляция Figma Auto Layout в Unity `Horizontal/Vertical Layout Group`.
