@@ -30,7 +30,7 @@ namespace FigmaImporter.V2.Editor.Diagnostics
 
         private void OnGUI()
         {
-            EditorGUILayout.BeginVertical(EditorStyles.inspectorFullDotNet);
+            EditorGUILayout.BeginVertical();
             GUILayout.Label("Figma-to-Unity Pipeline Audit (v2.2.5)", EditorStyles.boldLabel);
             
             if (GUILayout.Button("Run Full Audit", GUILayout.Height(30)))
@@ -87,7 +87,9 @@ namespace FigmaImporter.V2.Editor.Diagnostics
 
         private void CheckFonts()
         {
-            var font = FigmaParser.GlobalFallbackFont;
+            string[] guids = AssetDatabase.FindAssets("t:FontMappingTable");
+            FontMappingTable table = guids.Length > 0 ? AssetDatabase.LoadAssetAtPath<FontMappingTable>(AssetDatabase.GUIDToAssetPath(guids[0])) : null;
+            var font = table != null ? table.GlobalFallbackFont : null;
             if (font != null)
             {
                 _results.Add(new CheckResult 
@@ -125,8 +127,12 @@ namespace FigmaImporter.V2.Editor.Diagnostics
             var testObj = new GameObject("Test_AutoLayout");
             testObj.AddComponent<RectTransform>();
 
+            var element = testObj.GetComponent<FigmaElement>();
+            if (element == null) element = testObj.AddComponent<FigmaElement>();
+            
+            var context = new FigmaHandlerContext();
             bool canHandle = handler.CanHandle(mockNode);
-            handler.Apply(testObj, mockNode);
+            handler.Apply(mockNode, element, context);
 
             var lg = testObj.GetComponent<HorizontalLayoutGroup>();
             
