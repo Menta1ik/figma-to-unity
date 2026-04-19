@@ -360,10 +360,16 @@ namespace FigmaImporter.V2.Core
                     containerGo.transform.SetParent(parentTransform, false);
                     containerGo.transform.SetSiblingIndex(maskSiblingIndex);
 
-                    // Sync RectTransform
+                    // Sync RectTransform: copy anchor/pivot/size from mask to container
                     var maskRect = maskGo.GetComponent<RectTransform>();
                     if (maskRect != null)
-                        LayoutUtility.SyncRectTransform(maskRect, containerRect);
+                    {
+                        containerRect.anchorMin        = maskRect.anchorMin;
+                        containerRect.anchorMax        = maskRect.anchorMax;
+                        containerRect.pivot            = maskRect.pivot;
+                        containerRect.sizeDelta        = maskRect.sizeDelta;
+                        containerRect.anchoredPosition = maskRect.anchoredPosition;
+                    }
 
                     // Add Mask or RectMask2D
                     bool isRect = (maskNode.type == "RECTANGLE" || maskNode.type == "FRAME") && maskNode.cornerRadius == 0f;
