@@ -18,7 +18,6 @@ namespace FigmaImporter.V2.Utils
             try 
             {
                 _ = EditorStyles.boldLabel;
-                _ = EditorStyles.toolbarButtonRight; 
             }
             catch (System.Exception)
             {

@@ -16,7 +16,6 @@ public class FontMappingTableEditor : Editor
         try 
         {
             _ = EditorStyles.boldLabel;
-            _ = EditorStyles.toolbarButtonRight; 
         }
         catch (System.Exception)
         {

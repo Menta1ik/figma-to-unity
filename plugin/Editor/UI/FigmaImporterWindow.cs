@@ -46,7 +46,6 @@ namespace FigmaImporter.V2.UI
             try 
             {
                 _ = EditorStyles.boldLabel;
-                _ = EditorStyles.toolbarButtonRight; // Specifically failing style according to user
             }
             catch (Exception)
             {

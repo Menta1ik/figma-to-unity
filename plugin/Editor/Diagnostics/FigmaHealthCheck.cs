@@ -37,7 +37,6 @@ namespace FigmaImporter.V2.Editor.Diagnostics
             try 
             {
                 _ = EditorStyles.boldLabel;
-                _ = EditorStyles.toolbarButtonRight; 
             }
             catch (System.Exception)
             {

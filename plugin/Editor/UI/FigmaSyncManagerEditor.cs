@@ -15,7 +15,6 @@ namespace FigmaImporter.V2.UI
             try 
             {
                 _ = EditorStyles.boldLabel;
-                _ = EditorStyles.toolbarButtonRight; 
             }
             catch (System.Exception)
             {
