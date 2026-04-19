@@ -11,6 +11,10 @@ public class FontMappingTableEditor : Editor
 {
     public override void OnInspectorGUI()
     {
+        // Guard: EditorStyles may not be ready during domain reload
+        try { _ = EditorStyles.boldLabel; }
+        catch { Repaint(); return; }
+
         serializedObject.Update();
 
         EditorGUILayout.Space(10);

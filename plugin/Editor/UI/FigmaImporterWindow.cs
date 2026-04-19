@@ -41,6 +41,10 @@ namespace FigmaImporter.V2.UI
 
         private void OnGUI()
         {
+            // Guard: EditorStyles may not be ready during domain reload
+            try { _ = EditorStyles.boldLabel; }
+            catch { Repaint(); return; }
+
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
             EditorGUIUtility.labelWidth = 160f;
 

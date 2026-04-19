@@ -32,6 +32,10 @@ namespace FigmaImporter.V2.Editor.Diagnostics
 
         private void OnGUI()
         {
+            // Guard: EditorStyles may not be ready during domain reload
+            try { _ = EditorStyles.boldLabel; }
+            catch { Repaint(); return; }
+
             EditorGUILayout.BeginVertical();
             GUILayout.Label("Figma-to-Unity Pipeline Audit (v2.3.0)", EditorStyles.boldLabel);
             

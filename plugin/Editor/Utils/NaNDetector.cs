@@ -13,6 +13,10 @@ namespace FigmaImporter.V2.Utils
 
         private void OnGUI()
         {
+            // Guard: EditorStyles may not be ready during domain reload
+            try { _ = EditorStyles.boldLabel; }
+            catch { Repaint(); return; }
+
             GUILayout.Label("uGUI Anomaly Radar", EditorStyles.boldLabel);
             EditorGUILayout.Space();
 

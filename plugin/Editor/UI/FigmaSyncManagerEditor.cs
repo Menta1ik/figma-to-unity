@@ -10,6 +10,10 @@ namespace FigmaImporter.V2.UI
     {
         public override void OnInspectorGUI()
         {
+            // Guard: EditorStyles may not be ready during domain reload
+            try { _ = EditorStyles.boldLabel; }
+            catch { Repaint(); return; }
+
             base.OnInspectorGUI();
 
             FigmaSyncManager manager = (FigmaSyncManager)target;
