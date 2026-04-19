@@ -1,4 +1,4 @@
-# Figma Importer v2.2 (UPM)
+# Figma Importer v2.2.5 (UPM)
 
 Мощный инструмент для профессионального импорта UI из Figma в Unity с поддержкой **Smart Sync**, автоматизацией префабов и неразрушающим обновлением.
 
@@ -34,11 +34,13 @@ Select the `package.json` file inside the `plugin` folder.
 
 ---
 
-## 🛠 New in v2.2
+## 🛠 New in v2.2.5 (Hardening)
+*   **Soft-Delete**: Prevent data loss by marking old elements instead of deleting them.
+*   **Auto Layout**: Support for horizontal/vertical layouts and content fit.
+*   **9-Slice**: Automatic sprite configuration for `_9slice` layers.
+*   **Parallel Loading**: Multithreaded image sync for better performance.
+*   **Font Safety**: Strict validation for fallback fonts.
 *   **Batch Image Processing**: Reliable download for large files (chunks of 25).
-*   **Auto-Prefab Pipeline**: Instant prefab saving/connection after sync.
-*   **Non-Destructive Policy**: Preserves manual names, components, and animations.
-*   **Enhanced Fault Tolerance**: Isolated handler errors and NRE protection.
 
 ---
 

@@ -12,6 +12,7 @@ using TMPro;
 using FigmaImporter.V2.Data;
 using FigmaImporter.V2.Core.Handlers;
 using FigmaImporter.V2.Core.Validation;
+using FigmaImporter.V2.Runtime;
 
 namespace FigmaImporter.V2.Core
 {
@@ -46,6 +47,7 @@ namespace FigmaImporter.V2.Core
             _handlers = new List<IFigmaComponentHandler>
             {
                 new TransformHandler(),
+                new LayoutHandler(),
                 new TextHandler(),
                 new ImageHandler(),
                 new InteractiveHandler()
@@ -109,6 +111,12 @@ namespace FigmaImporter.V2.Core
                 }
             }
 
+            if (_handlerContext.GlobalFont == null)
+            {
+                EditorUtility.DisplayDialog("Figma Import Error", "Global Fallback Font is not set! Please configure it in your Font Mapping Table or Settings.", "OK");
+                return;
+            }
+
             var allElements = rootCanvas.GetComponentsInChildren<FigmaElement>(true);
             _existingCache = allElements.Where(e => !string.IsNullOrEmpty(e.FigmaNodeId))
                 .ToDictionary(e => e.FigmaNodeId, e => e);
@@ -163,7 +171,8 @@ namespace FigmaImporter.V2.Core
 
                 Debug.Log($"[Figma Debug] Sync completed. Created: {CreatedCount}, Updated: {UpdatedCount}. Objects in scene: {rootCanvas.childCount}");
                 
-                // Apply deferred masks logic here or method call
+                // Apply deferred masks after full tree is built
+                ApplyDeferredMasks();
                 _auditReport.PrintReport();
 
                 if (DownloadImages && _handlerContext.ImageNodesToDownload.Count > 0)
@@ -261,9 +270,12 @@ namespace FigmaImporter.V2.Core
                 // CRITICAL: Ensure RectTransform for UI, but skip if it's a prefab instance with Transform
                 if (go.GetComponent<RectTransform>() == null)
                 {
-                    bool isPrefab = PrefabUtility.IsPartOfAnyPrefab(go);
-                    if (!isPrefab) go.AddComponent<RectTransform>();
-                    else Debug.LogWarning($"[FigmaImporter] Cannot add RectTransform to prefab instance '{go.name}'. Please convert it to RectTransform manually or unpack the prefab.");
+                    if (PrefabUtility.IsPartOfAnyPrefab(go))
+                    {
+                        Debug.Log($"[FigmaImporter] Unpacking prefab instance '{go.name}' to add UI components.");
+                        PrefabUtility.UnpackPrefabInstance(go, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
+                    }
+                    go.AddComponent<RectTransform>();
                 }
                 
                 element.FigmaNodeId = node.id;
@@ -296,6 +308,12 @@ namespace FigmaImporter.V2.Core
                 }
             }
 
+            // Collect mask candidates for deferred application
+            if (node.isMask || node.clipsContent)
+            {
+                _deferredMasks.Add((node, element));
+            }
+
             if (node.children != null)
             {
                 foreach (var child in node.children)
@@ -315,36 +333,74 @@ namespace FigmaImporter.V2.Core
 
             string spriteFolder = Settings != null ? Settings.baseSpritesPath : "UI/Generated/Sprites";
 
-            int count = 0;
+            // v2.2.1: Parallel download with throttling
+            var semaphore = new SemaphoreSlim(10);
+            int completed = 0;
+            int totalDownloads = _handlerContext.ImageNodesToDownload.Count(n => links.ContainsKey(n.id));
+
+            // Phase 1: Download all image data in parallel
+            var downloadTasks = new List<Task<(FigmaNode node, byte[] data)>>();
             foreach (var node in _handlerContext.ImageNodesToDownload)
             {
-                ct.ThrowIfCancellationRequested();
-                if (links.ContainsKey(node.id))
+                if (!links.ContainsKey(node.id)) continue;
+                string url = links[node.id];
+                
+                var task = DownloadWithThrottle(semaphore, node, url, ct);
+                downloadTasks.Add(task);
+            }
+
+            var results = await Task.WhenAll(downloadTasks);
+
+            // Phase 2: Import sprites on main thread (Unity API requirement)
+            foreach (var (node, data) in results)
+            {
+                if (data == null) continue;
+                completed++;
+                onProgress?.Invoke(completed, totalDownloads, $"Importing image {completed}/{totalDownloads}");
+                
+                string fileName = $"{prefix}_{node.name}_{node.id.Replace(":", "_")}.png";
+                string relativePath = Path.Combine(spriteFolder, fileName);
+                Sprite sprite = FigmaAssetDownloader.ImportDataAsSprite(data, relativePath);
+                
+                if (sprite != null && _sessionCache.ContainsKey(node.id))
                 {
-                    count++;
-                    onProgress?.Invoke(count, nodeIds.Count, $"Downloading image {count}/{nodeIds.Count}");
-                    
-                    string url = links[node.id];
-                    string fileName = $"{prefix}_{node.name}_{node.id.Replace(":", "_")}.png";
-                    
-                    // Call static FigmaAssetDownloader methods
-                    byte[] data = await FigmaAssetDownloader.DownloadImageDataAsync(url);
-                    if (data != null)
+                    var img = _sessionCache[node.id].GetComponent<Image>();
+                    if (img != null)
                     {
-                        string relativePath = Path.Combine(spriteFolder, fileName);
-                        Sprite sprite = FigmaAssetDownloader.ImportDataAsSprite(data, relativePath);
+                        img.sprite = sprite;
+                        img.color = Color.white;
                         
-                        if (sprite != null && _sessionCache.ContainsKey(node.id))
+                        // 9-Slice auto-detection: if layer name ends with "_9slice"
+                        if (node.name.EndsWith("_9slice") || node.name.EndsWith("_9Slice"))
                         {
-                            var img = _sessionCache[node.id].GetComponent<Image>();
-                            if (img != null) 
-                            {
-                                img.sprite = sprite;
-                                img.color = Color.white; // Restore visibility!
-                            }
+                            Apply9SliceBorder(sprite, relativePath);
+                            img.type = Image.Type.Sliced;
+                            Debug.Log($"[FigmaImporter] Applied 9-Slice to '{node.name}'");
                         }
                     }
                 }
+            }
+
+            Debug.Log($"<color=cyan>[FigmaImporter] Downloaded {completed}/{totalDownloads} images in parallel.</color>");
+        }
+
+        private static async Task<(FigmaNode node, byte[] data)> DownloadWithThrottle(
+            SemaphoreSlim semaphore, FigmaNode node, string url, CancellationToken ct)
+        {
+            await semaphore.WaitAsync(ct);
+            try
+            {
+                byte[] data = await FigmaAssetDownloader.DownloadImageDataAsync(url);
+                return (node, data);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[FigmaImporter] Failed to download image for '{node.name}': {e.Message}");
+                return (node, null);
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
 
@@ -407,6 +463,32 @@ namespace FigmaImporter.V2.Core
             if (node.children != null) foreach (var child in node.children) CollectFontsRecursive(child, fonts);
         }
 
+        /// <summary>
+        /// Programmatically sets sprite border for 9-slice. Uses 25% of the shorter dimension as inset.
+        /// </summary>
+        private void Apply9SliceBorder(Sprite sprite, string assetRelativePath)
+        {
+            string assetPath = "Assets/" + assetRelativePath;
+            TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+            if (importer == null) return;
+
+            // Calculate border as 25% of the shorter side
+            float w = sprite.texture.width;
+            float h = sprite.texture.height;
+            float inset = Mathf.Min(w, h) * 0.25f;
+            inset = Mathf.Max(inset, 4f); // minimum 4px border
+
+            var spriteSheet = new TextureImporterSettings();
+            importer.ReadTextureSettings(spriteSheet);
+            spriteSheet.spriteBorder = new Vector4(inset, inset, inset, inset);
+            importer.SetTextureSettings(spriteSheet);
+
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            EditorUtility.SetDirty(importer);
+            importer.SaveAndReimport();
+        }
+
         private void HandleDeletedElements() 
         {
             if (_existingCache == null) return;
@@ -414,7 +496,15 @@ namespace FigmaImporter.V2.Core
             {
                 if (!_processedIds.Contains(kvp.Key) && kvp.Value != null)
                 {
-                    UnityEngine.Object.DestroyImmediate(kvp.Value.gameObject);
+                    GameObject go = kvp.Value.gameObject;
+                    
+                    // SAFE DELETE MODE (v2.2.1)
+                    go.SetActive(false);
+                    var orphan = go.GetComponent<FigmaOrphanedElement>();
+                    if (orphan == null) orphan = go.AddComponent<FigmaOrphanedElement>();
+                    orphan.Initialize(kvp.Key);
+                    
+                    Debug.Log($"[FigmaImporter] Element '{go.name}' (ID: {kvp.Key}) marked as Orphaned instead of deleted.");
                 }
             }
         }
@@ -435,7 +525,109 @@ namespace FigmaImporter.V2.Core
             else Debug.LogError($"[FigmaImporter] Failed to save prefab at {prefabPath}");
         }
 
-        private void ReskinRecursive(FigmaNode node, Transform target) { /* Implement reskin logic if needed */ }
-        private void ApplyDeferredMasks() { /* Implement mask logic if needed */ }
+        /// <summary>
+        /// Updates visual properties (sprites, colors, text) on an existing hierarchy
+        /// without rebuilding the Transform tree. Used for variant switching.
+        /// </summary>
+        private void ReskinRecursive(FigmaNode node, Transform target)
+        {
+            if (node == null || target == null) return;
+
+            var element = target.GetComponent<FigmaElement>();
+            if (element == null) return;
+
+            // Update text content
+            if (node.type == "TEXT" && !string.IsNullOrEmpty(node.characters))
+            {
+                var tmp = target.GetComponent<TMPro.TMP_Text>();
+                if (tmp != null) tmp.text = node.characters;
+                
+                // Update text color from fills
+                if (node.fills != null && node.fills.Count > 0 && node.fills[0].color != null)
+                {
+                    if (tmp != null) tmp.color = node.fills[0].color.ToUnityColor(node.fills[0].opacity);
+                }
+            }
+
+            // Update image color tint
+            var img = target.GetComponent<Image>();
+            if (img != null && node.fills != null && node.fills.Count > 0)
+            {
+                var fill = node.fills[0];
+                if (fill.type == "SOLID" && fill.color != null)
+                {
+                    img.color = fill.color.ToUnityColor(fill.opacity);
+                }
+            }
+
+            // Recurse into children by matching FigmaNodeId
+            if (node.children != null)
+            {
+                foreach (var childNode in node.children)
+                {
+                    // Find matching child by Figma ID
+                    Transform matchedChild = null;
+                    foreach (Transform t in target)
+                    {
+                        var childElement = t.GetComponent<FigmaElement>();
+                        if (childElement != null && childElement.FigmaNodeId == childNode.id)
+                        {
+                            matchedChild = t;
+                            break;
+                        }
+                    }
+                    if (matchedChild != null) ReskinRecursive(childNode, matchedChild);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Applies mask components to elements that were collected during sync.
+        /// Uses clipsContent for RectMask2D and isMask for legacy Mask component.
+        /// Must be called AFTER the full tree is built.
+        /// </summary>
+        private void ApplyDeferredMasks()
+        {
+            if (_deferredMasks == null || _deferredMasks.Count == 0) return;
+
+            int appliedCount = 0;
+            foreach (var (node, element) in _deferredMasks)
+            {
+                if (element == null) continue;
+                var go = element.gameObject;
+
+                // isMask: This node is a Figma mask shape — apply Unity Mask to its PARENT
+                if (node.isMask)
+                {
+                    var parentTransform = go.transform.parent;
+                    if (parentTransform != null)
+                    {
+                        var parentGo = parentTransform.gameObject;
+                        if (parentGo.GetComponent<Mask>() == null && parentGo.GetComponent<RectMask2D>() == null)
+                        {
+                            // Add Image if missing (Mask requires Image)
+                            if (parentGo.GetComponent<Image>() == null)
+                                parentGo.AddComponent<Image>().color = new Color(1, 1, 1, 0);
+                            
+                            var mask = parentGo.AddComponent<Mask>();
+                            mask.showMaskGraphic = false;
+                            appliedCount++;
+                        }
+                    }
+                }
+                // clipsContent: This frame clips its own children — use RectMask2D
+                else if (node.clipsContent)
+                {
+                    if (go.GetComponent<RectMask2D>() == null && go.GetComponent<Mask>() == null)
+                    {
+                        go.AddComponent<RectMask2D>();
+                        appliedCount++;
+                    }
+                }
+            }
+
+            if (appliedCount > 0)
+                Debug.Log($"<color=yellow>[FigmaImporter] Applied {appliedCount} mask(s) to the UI hierarchy.</color>");
+        }
     }
 }

@@ -5,6 +5,20 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 и проект придерживается [Семантического Версионирования](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.5] - 2026-04-19
+
+### Добавлено (Hardening Pipeline)
+- **Soft-Delete**: Объекты больше не удаляются физически, а выключаются и помечаются `FigmaOrphanedElement`, предотвращая потерю логики.
+- **Auto Layout Support**: Полная трансляция Figma Auto Layout в Unity `Horizontal/Vertical Layout Group` и `ContentSizeFitter`.
+- **9-Slice Automation**: Авто-настройка границ спрайтов и типа `Sliced` для слоев с суффиксом `_9slice`.
+- **Parallel Sync**: Многопоточная загрузка изображений с использованием `SemaphoreSlim`, значительно ускоряющая импорт.
+- **Health Check Tool**: Встроенная система самодиагностики для проверки целостности пайплайна.
+
+### Исправлено
+- **Font Safety**: Добавлена блокирующая валидация `GlobalFallbackFont` для предотвращения поломки типографики.
+- **Prefab Compatibility**: Автоматическая распаковка префабов при конфликтах имен или `RectTransform`.
+- **Masking Logic**: Исправлена привязка масок (Corrected deferred masks application).
+
 ## [2.2.0] - 2026-04-18
 
 ### Добавлено

@@ -51,6 +51,22 @@ namespace FigmaImporter.V2.Data
         public float strokeWeight;
         public float cornerRadius;
         
+        // Auto Layout properties (Figma API)
+        public string layoutMode;       // "HORIZONTAL", "VERTICAL", or null
+        public float itemSpacing;       // Gap between children
+        public float paddingLeft;
+        public float paddingRight;
+        public float paddingTop;
+        public float paddingBottom;
+        public string primaryAxisSizingMode;    // "FIXED" or "AUTO"
+        public string counterAxisSizingMode;    // "FIXED" or "AUTO"
+        public string primaryAxisAlignItems;    // "MIN", "CENTER", "MAX", "SPACE_BETWEEN"
+        public string counterAxisAlignItems;    // "MIN", "CENTER", "MAX"
+        public string layoutAlign;              // "STRETCH", "INHERIT"
+        public float layoutGrow;                // 0 = fixed, 1 = fill
+        
+        public bool isMask; // Figma mask flag — node acts as clip mask for siblings
+        
         [NonSerialized] public string computedHash;
     }
 
