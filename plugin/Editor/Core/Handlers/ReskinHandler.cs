@@ -60,7 +60,8 @@ namespace FigmaImporter.V2.Core.Handlers
                     // Update text color from fills
                     if (node.fills != null && node.fills.Count > 0 && node.fills[0].color != null)
                     {
-                        tmp.color = node.fills[0].color.ToUnityColor(node.fills[0].opacity);
+                        float alpha = node.opacity * node.fills[0].opacity;
+                        tmp.color = node.fills[0].color.ToUnityColor(alpha);
                     }
 
                     if (node.style != null)
@@ -77,7 +78,8 @@ namespace FigmaImporter.V2.Core.Handlers
                 var fill = node.fills[0];
                 if (fill.type == "SOLID" && fill.color != null)
                 {
-                    img.color = fill.color.ToUnityColor(fill.opacity);
+                    float alpha = node.opacity * fill.opacity;
+                    img.color = fill.color.ToUnityColor(alpha);
                 }
             }
 

@@ -199,20 +199,25 @@ namespace FigmaImporter.V2.Editor.Diagnostics
             var mockNode = new FigmaNode { layoutMode = "HORIZONTAL", itemSpacing = 10 };
             var handler = new LayoutHandler();
             var testObj = new GameObject("Test_AutoLayout", typeof(RectTransform));
-            var element = testObj.AddComponent<FigmaElement>();
-            
-            handler.Apply(mockNode, element, new FigmaHandlerContext());
-            var lg = testObj.GetComponent<HorizontalLayoutGroup>();
-            
-            if (lg != null && lg.spacing == 10)
+            try
             {
-                _results.Add(new CheckResult { Name = "Auto Layout Translator", Status = "PASSED", Color = Color.green, Details = "LayoutHandler correctly maps Figma properties to Unity Layout Groups." });
+                var element = testObj.AddComponent<FigmaElement>();
+                handler.Apply(mockNode, element, new FigmaHandlerContext());
+                var lg = testObj.GetComponent<HorizontalLayoutGroup>();
+                
+                if (lg != null && lg.spacing == 10)
+                {
+                    _results.Add(new CheckResult { Name = "Auto Layout Translator", Status = "PASSED", Color = Color.green, Details = "LayoutHandler correctly maps Figma properties to Unity Layout Groups." });
+                }
+                else
+                {
+                    _results.Add(new CheckResult { Name = "Auto Layout Translator", Status = "FAILED", Color = Color.red, Details = "Failed to apply LayoutGroup to mock node." });
+                }
             }
-            else
+            finally
             {
-                _results.Add(new CheckResult { Name = "Auto Layout Translator", Status = "FAILED", Color = Color.red, Details = "Failed to apply LayoutGroup to mock node." });
+                DestroyImmediate(testObj);
             }
-            DestroyImmediate(testObj);
         }
 
         private void Check9Slice()
@@ -227,17 +232,22 @@ namespace FigmaImporter.V2.Editor.Diagnostics
         private void CheckIntegrity()
         {
             var testObj = new GameObject("Test_Integrity", typeof(RectTransform));
-            testObj.AddComponent<FigmaElement>().FigmaNodeId = "mock_id";
-            testObj.name = "[Orphan] Test_Integrity"; // Simulated rename
-            
-            bool isCorrect = testObj.GetComponent<FigmaElement>() != null && testObj.name.Contains("[Orphan]");
-
-            if (isCorrect)
+            try
             {
-                _results.Add(new CheckResult { Name = "Reskin & Integrity System", Status = "PASSED", Color = Color.green, Details = "ID-based tracking and soft-delete markings are functional." });
+                testObj.AddComponent<FigmaElement>().FigmaNodeId = "mock_id";
+                testObj.name = "[Orphan] Test_Integrity"; // Simulated rename
+                
+                bool isCorrect = testObj.GetComponent<FigmaElement>() != null && testObj.name.Contains("[Orphan]");
+
+                if (isCorrect)
+                {
+                    _results.Add(new CheckResult { Name = "Reskin & Integrity System", Status = "PASSED", Color = Color.green, Details = "ID-based tracking and soft-delete markings are functional." });
+                }
             }
-            
-            DestroyImmediate(testObj);
+            finally
+            {
+                DestroyImmediate(testObj);
+            }
         }
     }
 }

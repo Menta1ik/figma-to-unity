@@ -42,51 +42,53 @@ namespace FigmaImporter.V2.Core.Services
 
             string spriteFolder = _settings != null ? _settings.baseSpritesPath : "UI/Generated/Sprites";
 
-            var semaphore = new SemaphoreSlim(10);
-            int completed = 0;
-            int totalDownloads = context.ImageNodesToDownload.Count(n => links.ContainsKey(n.id));
-
-            var downloadTasks = new List<Task<(FigmaNode node, byte[] data)>>();
-            foreach (var node in context.ImageNodesToDownload)
+            using (var semaphore = new SemaphoreSlim(10))
             {
-                if (!links.ContainsKey(node.id)) continue;
-                string url = links[node.id];
-                
-                var task = DownloadWithThrottle(semaphore, node, url, ct);
-                downloadTasks.Add(task);
-            }
+                int completed = 0;
+                int totalDownloads = context.ImageNodesToDownload.Count(n => links.ContainsKey(n.id));
 
-            var results = await Task.WhenAll(downloadTasks);
-
-            foreach (var (node, data) in results)
-            {
-                if (data == null) continue;
-                completed++;
-                onProgress?.Invoke(completed, totalDownloads, $"Importing image {completed}/{totalDownloads}");
-                
-                string fileName = $"{prefix}_{node.name}_{node.id.Replace(":", "_")}.png";
-                string relativePath = Path.Combine(spriteFolder, fileName);
-                Sprite sprite = FigmaAssetDownloader.ImportDataAsSprite(data, relativePath);
-                
-                if (sprite != null && sessionCache.ContainsKey(node.id))
+                var downloadTasks = new List<Task<(FigmaNode node, byte[] data)>>();
+                foreach (var node in context.ImageNodesToDownload)
                 {
-                    var img = sessionCache[node.id].GetComponent<Image>();
-                    if (img != null)
+                    if (!links.ContainsKey(node.id)) continue;
+                    string url = links[node.id];
+                    
+                    var task = DownloadWithThrottle(semaphore, node, url, ct);
+                    downloadTasks.Add(task);
+                }
+
+                var results = await Task.WhenAll(downloadTasks);
+
+                foreach (var (node, data) in results)
+                {
+                    if (data == null) continue;
+                    completed++;
+                    onProgress?.Invoke(completed, totalDownloads, $"Importing image {completed}/{totalDownloads}");
+                    
+                    string fileName = $"{prefix}_{node.name}_{node.id.Replace(":", "_")}.png";
+                    string relativePath = Path.Combine(spriteFolder, fileName);
+                    Sprite sprite = FigmaAssetDownloader.ImportDataAsSprite(data, relativePath);
+                    
+                    if (sprite != null && sessionCache.ContainsKey(node.id))
                     {
-                        img.sprite = sprite;
-                        img.color = Color.white;
-                        
-                        if (node.name.EndsWith("_9slice", StringComparison.OrdinalIgnoreCase))
+                        var img = sessionCache[node.id].GetComponent<Image>();
+                        if (img != null)
                         {
-                            Apply9SliceBorder(sprite, relativePath);
-                            img.type = Image.Type.Sliced;
-                            Debug.Log($"[FigmaImporter] Applied 9-Slice to '{node.name}'");
+                            img.sprite = sprite;
+                            img.color = Color.white;
+                            
+                            if (node.name.EndsWith("_9slice", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Apply9SliceBorder(sprite, relativePath);
+                                img.type = Image.Type.Sliced;
+                                Debug.Log($"[FigmaImporter] Applied 9-Slice to '{node.name}'");
+                            }
                         }
                     }
                 }
-            }
 
-            Debug.Log($"<color=cyan>[FigmaImporter] Downloaded {completed}/{totalDownloads} images.</color>");
+                Debug.Log($"<color=cyan>[FigmaImporter] Downloaded {completed}/{totalDownloads} images.</color>");
+            }
         }
 
         private async Task<(FigmaNode node, byte[] data)> DownloadWithThrottle(

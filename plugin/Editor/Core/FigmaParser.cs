@@ -317,6 +317,11 @@ namespace FigmaImporter.V2.Core
             }
         }
 
+        /// <summary>
+        /// Finalizes mask components after the entire hierarchy is created.
+        /// Figma masks affect siblings, while Unity masks affect children.
+        /// current logic approximates this by putting the mask on the parent.
+        /// </summary>
         private void ApplyDeferredMasks()
         {
             if (_deferredMasks == null || _deferredMasks.Count == 0) return;
@@ -326,6 +331,8 @@ namespace FigmaImporter.V2.Core
                 if (element == null) continue;
                 var go = element.gameObject;
 
+                // Case 1: Figma "isMask" property
+                // We apply Unity Mask to the PARENT, which masks all its children.
                 if (node.isMask)
                 {
                     var parent = go.transform.parent;
@@ -334,12 +341,14 @@ namespace FigmaImporter.V2.Core
                         var pgo = parent.gameObject;
                         if (pgo.GetComponent<Mask>() == null && pgo.GetComponent<RectMask2D>() == null)
                         {
+                            // Mask needs an Image component to define the area (even if invisible)
                             if (pgo.GetComponent<Image>() == null) pgo.AddComponent<Image>().color = new Color(1, 1, 1, 0);
                             var mask = pgo.AddComponent<Mask>();
                             mask.showMaskGraphic = false;
                         }
                     }
                 }
+                // Case 2: Figma "clipsContent" (standard Frame clipping)
                 else if (node.clipsContent && go.GetComponent<RectMask2D>() == null && go.GetComponent<Mask>() == null)
                 {
                     go.AddComponent<RectMask2D>();

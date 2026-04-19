@@ -28,12 +28,8 @@ namespace FigmaImporter.V2.Tests
             Assert.AreEqual(TextAnchor.MiddleCenter, InvokeMapAlignment(node));
 
             node = new FigmaNode { layoutMode = "HORIZONTAL", primaryAxisAlignItems = "MAX", counterAxisAlignItems = "MAX" };
-            // In MapAlignment logic: primary=MAX (horizontal) + counter=MAX (vertical) -> MiddleRight?
-            // Let's re-verify the code logic in LayoutHandler lines 157-169.
-            // If vAlign (counter) == "CENTER" and hAlign (primary) == "MAX" -> MiddleRight.
-            // If vAlign (counter) == "MAX" and hAlign (primary) == "MAX" -> LowerRight?
-            // Let's see...
-            Assert.AreEqual(TextAnchor.MiddleRight, InvokeMapAlignment(node)); 
+            // In MapAlignment logic: primary=MAX (horizontal) + counter=MAX (vertical) -> LowerRight
+            Assert.AreEqual(TextAnchor.LowerRight, InvokeMapAlignment(node)); 
         }
 
         [Test]
@@ -51,16 +47,16 @@ namespace FigmaImporter.V2.Tests
                 id = "root",
                 children = new List<FigmaNode> 
                 { 
-                    new FigmaNode { id = "target_id", name = "NewName", type = "FRAME" } 
+                    new FigmaNode { id = "target_id", name = "NewName", type = "FRAME", computedHash = "new_hash" } 
                 } 
             };
 
             reskinHandler.ApplyReskin(parentGo, newNode);
 
-            // Verify that the child with ID "target_id" was found and updated, even if it had a different name
-            Assert.AreEqual("target_id", childGo.GetComponent<FigmaElement>().FigmaNodeId);
-            // Wait, ReskinHandler currently doesn't rename objects if they are found by ID 
-            // but it updates their FigmaElement data.
+            // Verify that the child with ID "target_id" was found and updated
+            var updatedElement = childGo.GetComponent<FigmaElement>();
+            Assert.AreEqual("target_id", updatedElement.FigmaNodeId);
+            Assert.AreEqual("new_hash", updatedElement.LastUpdateHash, "Reskin must update the computed hash");
             
             Object.DestroyImmediate(parentGo);
         }
@@ -73,19 +69,30 @@ namespace FigmaImporter.V2.Tests
             { 
                 id = "icon_id", 
                 type = "FRAME",
-                children = new List<FigmaNode> { new FigmaNode { type = "TEXT", characters = "icon" } }
+                name = "test_icon", // Must contain "icon" to be a candidate
+                children = new List<FigmaNode> { new FigmaNode { type = "VECTOR", id = "vec" } } // NO text children
             };
 
             var imageHandler = new ImageHandler();
+            var go = new GameObject("IconTest");
+            var element = go.AddComponent<FigmaElement>();
             
-            // First call should fill the cache
-            bool isIcon = imageHandler.CanHandle(node);
-            Assert.IsTrue(context.IconCandidateCache.ContainsKey("icon_id"));
-            Assert.AreEqual(isIcon, context.IconCandidateCache["icon_id"]);
+            try 
+            {
+                // Apply triggers IsIconCandidateCached
+                imageHandler.Apply(node, element, context);
+                
+                Assert.IsTrue(context.IconCandidateCache.ContainsKey("icon_id"), "Cache should contain the node ID after Apply");
+                Assert.IsTrue(context.IconCandidateCache["icon_id"], "Node with 'icon' name and no text should be cached as true");
 
-            // Second call should return cached value
-            bool isIconCached = imageHandler.CanHandle(node);
-            Assert.AreEqual(isIcon, isIconCached);
+                // Second call should NOT change the cache result
+                imageHandler.Apply(node, element, context);
+                Assert.IsTrue(context.IconCandidateCache["icon_id"]);
+            }
+            finally 
+            {
+                Object.DestroyImmediate(go);
+            }
         }
 
         private TextAnchor InvokeMapAlignment(FigmaNode node)

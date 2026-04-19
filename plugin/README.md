@@ -39,14 +39,17 @@ Select the `package.json` file inside the `plugin` folder.
 *   **Icon Detection Cache**: Оптимизация производительности в `ImageHandler` (кэширование кандидатов на иконки), решающая проблему больших макетов.
 *   **Deep Diagnostics**: Улучшенный `FigmaHealthCheck` с проверкой целостности `asmdef`, версий и архитектурных связей.
 *   **Reliable Unit Tests**: Добавлен набор тестов для верификации логики рескина и кэширования.
+*   **Soft-Delete**: Предотвращение потери данных путем маркировки старых элементов вместо их удаления.
+*   **Auto Layout**: Поддержка горизонтальных/вертикальных макетов и Content Size Fitter.
+*   **Parallel Loading**: Многопоточная синхронизация изображений для лучшей производительности.
+*   **Batch processing**: Надежная загрузка больших файлов (батчи по 25 штук).
 
-## 🛠 New in v2.3.0 (Stable)
-*   **Soft-Delete**: Prevent data loss by marking old elements instead of deleting them.
-*   **Auto Layout**: Support for horizontal/vertical layouts and content fit.
-*   **9-Slice**: Automatic sprite configuration for `_9slice` layers.
-*   **Parallel Loading**: Multithreaded image sync for better performance.
-*   **Font Safety**: Strict validation for fallback fonts.
-*   **Batch Image Processing**: Reliable download for large files (chunks of 25).
+---
+
+## 📚 Documentation
+*   [Developer Manual](Manuals/DEVELOPER_MANUAL.md) — Полное руководство по настройке и API.
+*   [Technical Concepts](Manuals/CONCEPTS.md) — Описание архитектуры и системы "паспортов".
+*   [Designer Guide](Manuals/DESIGNER_GUIDE.md) — Инструкции для дизайнеров (маркеры, нейминг).
 
 ---
 
