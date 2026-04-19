@@ -11,14 +11,25 @@ public class FontMappingTableEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        // Guard: EditorStyles may not be ready during domain reload
-        try { _ = EditorStyles.boldLabel; }
-        catch { Repaint(); return; }
+        // NEW ULTIMATE GUARD: EditorStyles may throw NullReferenceException during domain reload if Unity is unstable.
+        // We catch EVERYTHING here and just skip drawing this frame, requesting a repaint.
+        try 
+        {
+            _ = EditorStyles.boldLabel;
+            _ = EditorStyles.toolbarButtonRight; 
+        }
+        catch (System.Exception)
+        {
+            Repaint();
+            return;
+        }
 
-        serializedObject.Update();
+        try 
+        {
+            serializedObject.Update();
 
-        EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField("🪐 Typography Sync Config", EditorStyles.boldLabel);
+            EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField("🪐 Typography Sync Config", EditorStyles.boldLabel);
         
         EditorGUILayout.HelpBox("Specify how to replace fonts from Figma.\n" +
                                  "Use the button below to automatically search for assets in the project.", MessageType.Info);
@@ -93,7 +104,12 @@ public class FontMappingTableEditor : Editor
             EditorGUILayout.Space(2);
         }
 
-        serializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
+        }
+        catch (System.Exception)
+        {
+            Repaint();
+        }
     }
 
     private void AutoScanFonts()

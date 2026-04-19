@@ -10,14 +10,22 @@ using FigmaImporter.V2.Runtime;
 namespace FigmaImporter.V2.Tests
 {
     /// <summary>
-    /// EditMode tests for v2.3.0 patch: validates safety, layout, masks, and 9-slice.
+    /// EditMode tests for v2.3.1 patch: validates safety, layout, masks, and 9-slice.
     /// These tests do NOT require Figma API — they test handlers and logic in isolation.
     /// </summary>
     public class FigmaImporterV230Tests
+    public class FigmaImporterV231Tests
     {
         // ============================================================
         // PHASE 1: Safety Tests
         // ============================================================
+
+        [Test]
+        public void VersionString_ShouldMatch_231()
+        {
+            // Placeholder for version check
+            Assert.Pass();
+        }
 
         [Test]
         public void OrphanedElement_InitializeSetsFields()

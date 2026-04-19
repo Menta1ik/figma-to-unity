@@ -10,11 +10,22 @@ namespace FigmaImporter.V2.UI
     {
         public override void OnInspectorGUI()
         {
-            // Guard: EditorStyles may not be ready during domain reload
-            try { _ = EditorStyles.boldLabel; }
-            catch { Repaint(); return; }
+            // NEW ULTIMATE GUARD: EditorStyles may throw NullReferenceException during domain reload if Unity is unstable.
+            // We catch EVERYTHING here and just skip drawing this frame, requesting a repaint.
+            try 
+            {
+                _ = EditorStyles.boldLabel;
+                _ = EditorStyles.toolbarButtonRight; 
+            }
+            catch (System.Exception)
+            {
+                Repaint();
+                return;
+            }
 
-            base.OnInspectorGUI();
+            try 
+            {
+                base.OnInspectorGUI();
 
             FigmaSyncManager manager = (FigmaSyncManager)target;
 
@@ -33,6 +44,11 @@ namespace FigmaImporter.V2.UI
             if (GUILayout.Button("🧹 Очистить дочерние объекты (Сбросить кеш)"))
             {
                 EditorApplication.delayCall += () => ClearChildren(manager.transform);
+            }
+            }
+            catch (System.Exception)
+            {
+                Repaint();
             }
         }
 
@@ -63,7 +79,7 @@ namespace FigmaImporter.V2.UI
                 }
                 else
                 {
-                    Debug.LogError($"[Figma v2.3.0] Файл не найден: {path}");
+                    Debug.LogError($"[Figma v2.3.1] Файл не найден: {path}");
                     manager.UpdateStatus("Ошибка: Файл не найден.");
                     return;
                 }
@@ -84,11 +100,11 @@ namespace FigmaImporter.V2.UI
                 });
 
                 manager.UpdateStatus("Синхронизация завершена!");
-                Debug.Log("<color=green>[Figma v2.3.0]</color> Успешно!");
+                Debug.Log("<color=green>[Figma v2.3.1]</color> Успешно!");
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[Figma v2.3.0] Ошибка: {e.Message}");
+                Debug.LogError($"[Figma v2.3.1] Ошибка: {e.Message}");
                 manager.UpdateStatus("Ошибка синхронизации.");
             }
             finally
@@ -106,7 +122,7 @@ namespace FigmaImporter.V2.UI
             {
                 Undo.DestroyObjectImmediate(parent.GetChild(i).gameObject);
             }
-            Debug.Log("[Figma v2.3.0] Дочерние объекты очищены!");
+            Debug.Log("[Figma v2.3.1] Дочерние объекты очищены!");
         }
     }
 }

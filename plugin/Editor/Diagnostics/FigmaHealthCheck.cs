@@ -24,7 +24,7 @@ namespace FigmaImporter.V2.Editor.Diagnostics
             public string Details;
         }
 
-        [MenuItem("Figma Importer/Diagnostics/Health Check (v2.3.0)")]
+        [MenuItem("Figma Importer/Diagnostics/Health Check (v2.3.1)")]
         public static void ShowWindow()
         {
             GetWindow<FigmaHealthCheck>("Figma Health Check");
@@ -32,17 +32,28 @@ namespace FigmaImporter.V2.Editor.Diagnostics
 
         private void OnGUI()
         {
-            // Guard: EditorStyles may not be ready during domain reload
-            try { _ = EditorStyles.boldLabel; }
-            catch { Repaint(); return; }
-
-            EditorGUILayout.BeginVertical();
-            GUILayout.Label("Figma-to-Unity Pipeline Audit (v2.3.0)", EditorStyles.boldLabel);
-            
-            if (GUILayout.Button("Run Full Audit", GUILayout.Height(30)))
+            // NEW ULTIMATE GUARD: EditorStyles may throw NullReferenceException during domain reload if Unity is unstable.
+            // We catch EVERYTHING here and just skip drawing this frame, requesting a repaint.
+            try 
             {
-                RunAudit();
+                _ = EditorStyles.boldLabel;
+                _ = EditorStyles.toolbarButtonRight; 
             }
+            catch (System.Exception)
+            {
+                Repaint();
+                return;
+            }
+
+            try 
+            {
+                EditorGUILayout.BeginVertical();
+                GUILayout.Label("Figma-to-Unity Pipeline Audit (v2.3.1)", EditorStyles.boldLabel);
+                
+                if (GUILayout.Button("Run Full Audit", GUILayout.Height(30)))
+                {
+                    RunAudit();
+                }
 
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
             foreach (var result in _results)
@@ -51,6 +62,11 @@ namespace FigmaImporter.V2.Editor.Diagnostics
             }
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
+            }
+            catch (System.Exception)
+            {
+                Repaint();
+            }
         }
 
         private void DrawResult(CheckResult result)

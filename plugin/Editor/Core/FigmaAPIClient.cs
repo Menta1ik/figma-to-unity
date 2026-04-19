@@ -107,7 +107,7 @@ namespace FigmaImporter.V2.Core
                         request.SetRequestHeader("X-Figma-Token", _accessToken);
                     }
                     request.SetRequestHeader("Accept", "application/json");
-                    request.SetRequestHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Unity/2.3.0");
+                    request.SetRequestHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Unity/2.3.1");
 
                     var operation = request.SendWebRequest();
 

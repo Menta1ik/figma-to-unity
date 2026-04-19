@@ -35,21 +35,32 @@ namespace FigmaImporter.V2.UI
         [MenuItem("Figma Importer/Sync & Reskin Dashboard")]
         public static void ShowWindow()
         {
-            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.3.0");
-            window.minSize = new Vector2(350, 450);
+            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.3.1");
+            window.minSize = new Vector2.3.1, 450);
         }
 
         private void OnGUI()
         {
-            // Guard: EditorStyles may not be ready during domain reload
-            try { _ = EditorStyles.boldLabel; }
-            catch { Repaint(); return; }
+            // NEW ULTIMATE GUARD: EditorStyles may throw NullReferenceException during domain reload if Unity is unstable.
+            // We catch EVERYTHING here and just skip drawing this frame, requesting a repaint.
+            try 
+            {
+                _ = EditorStyles.boldLabel;
+                _ = EditorStyles.toolbarButtonRight; // Specifically failing style according to user
+            }
+            catch (Exception)
+            {
+                Repaint();
+                return;
+            }
 
-            _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
-            EditorGUIUtility.labelWidth = 160f;
+            try
+            {
+                _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
+                EditorGUIUtility.labelWidth = 160f;
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.3.0", EditorStyles.boldLabel);
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.3.1", EditorStyles.boldLabel);
             
             // --- SECTION 1: CONNECTION ---
             EditorGUILayout.BeginVertical("box");
@@ -155,6 +166,12 @@ namespace FigmaImporter.V2.UI
             }
 
             EditorGUILayout.EndScrollView();
+            }
+            catch (Exception)
+            {
+                // Catch any other UI errors during instability
+                Repaint();
+            }
         }
 
         private async void RunFontAudit()
@@ -256,7 +273,7 @@ namespace FigmaImporter.V2.UI
                     string jsonPath = Path.Combine(Application.dataPath, "lobby_figma.json");
                     if (!File.Exists(jsonPath))
                     {
-                        Debug.LogError($"[Figma v2.3.0] Local file not found: {jsonPath}");
+                        Debug.LogError($"[Figma v2.3.1] Local file not found: {jsonPath}");
                         return;
                     }
                     jsonContent = File.ReadAllText(jsonPath);
@@ -294,7 +311,7 @@ namespace FigmaImporter.V2.UI
             {
                 Undo.DestroyObjectImmediate(_rootCanvas.GetChild(i).gameObject);
             }
-            Debug.Log("[Figma v2.3.0] Canvas cleared successfully!");
+            Debug.Log("[Figma v2.3.1] Canvas cleared successfully!");
         }
         private async void RunInteractiveTest()
         {

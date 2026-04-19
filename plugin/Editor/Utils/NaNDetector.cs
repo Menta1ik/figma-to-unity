@@ -13,26 +13,42 @@ namespace FigmaImporter.V2.Utils
 
         private void OnGUI()
         {
-            // Guard: EditorStyles may not be ready during domain reload
-            try { _ = EditorStyles.boldLabel; }
-            catch { Repaint(); return; }
-
-            GUILayout.Label("uGUI Anomaly Radar", EditorStyles.boldLabel);
-            EditorGUILayout.Space();
-
-            if (GUILayout.Button("📡 SCAN SCENE", GUILayout.Height(40)))
+            // NEW ULTIMATE GUARD: EditorStyles may throw NullReferenceException during domain reload if Unity is unstable.
+            // We catch EVERYTHING here and just skip drawing this frame, requesting a repaint.
+            try 
             {
-                ScanAndFix(false);
+                _ = EditorStyles.boldLabel;
+                _ = EditorStyles.toolbarButtonRight; 
+            }
+            catch (System.Exception)
+            {
+                Repaint();
+                return;
             }
 
-            EditorGUILayout.Space();
-
-            GUI.backgroundColor = Color.red;
-            if (GUILayout.Button("🔨 FIX ALL FOUND NaN", GUILayout.Height(40)))
+            try 
             {
-                ScanAndFix(true);
+                GUILayout.Label("uGUI Anomaly Radar (v2.3.1)", EditorStyles.boldLabel);
+                EditorGUILayout.Space();
+
+                if (GUILayout.Button("📡 SCAN SCENE", GUILayout.Height(40)))
+                {
+                    ScanAndFix(false);
+                }
+
+                EditorGUILayout.Space();
+
+                GUI.backgroundColor = Color.red;
+                if (GUILayout.Button("🛠 SCAN AND FIX (EXPERIMENTAL)", GUILayout.Height(40)))
+                {
+                    ScanAndFix(true);
+                }
+                GUI.backgroundColor = Color.white;
             }
-            GUI.backgroundColor = Color.white;
+            catch (System.Exception)
+            {
+                Repaint();
+            }
         }
 
         private void ScanAndFix(bool fix)
