@@ -40,7 +40,7 @@ Select the `package.json` file inside the `plugin` folder.
 *   **Deep Diagnostics**: Улучшенный `FigmaHealthCheck` с проверкой целостности `asmdef`, версий и архитектурных связей.
 *   **Reliable Unit Tests**: Добавлен набор тестов для верификации логики рескина и кэширования.
 
-## 🛠 New in v2.2.5 (Hardening)
+## 🛠 New in v2.3.0 (Stable)
 *   **Soft-Delete**: Prevent data loss by marking old elements instead of deleting them.
 *   **Auto Layout**: Support for horizontal/vertical layouts and content fit.
 *   **9-Slice**: Automatic sprite configuration for `_9slice` layers.

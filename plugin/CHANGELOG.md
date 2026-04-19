@@ -11,7 +11,7 @@
 - **Service-Oriented Refactoring**: Core-логика `FigmaParser` разделена между специализированными сервисами `ImageSyncService` (сетевая синхронизация) и `PrefabManager` (управление ассетами).
 - **Icon Detection Performance**: Внедрен `IconCandidateCache` в `FigmaHandlerContext`, минимизирующий рекурсивные вызовы в `ImageHandler` и ускоряющий импорт на 40% для крупных проектов.
 - **Deep Diagnostics v2.3**: `FigmaHealthCheck` теперь проверяет целостность `asmdef`, наличие системных служб и валидность путей сохранения.
-- **Unit Testing Suite**: Добавлен `HandlerTests.cs` для верификации логики рескина и кэширования в изолированной среде.
+- **Unit Testing Suite**: Добавлен `FigmaImporterV230Tests.cs` для верификации логики рескина и кэширования в изолированной среде.
 
 ### Исправлено
 - **O(n^2) Bottleneck**: Устранена проблема производительности при поиске иконок в глубоко вложенных иерархиях.

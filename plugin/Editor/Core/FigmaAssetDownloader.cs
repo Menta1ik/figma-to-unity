@@ -66,7 +66,7 @@ namespace FigmaImporter.V2.Core
                 }
                 else
                 {
-                    Debug.LogError($"[Figma v2.2.5] TextureImporter is NULL for path {assetPath}");
+                    Debug.LogError($"[Figma v2.3.0] TextureImporter is NULL for path {assetPath}");
                 }
             }
 
