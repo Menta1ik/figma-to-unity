@@ -13,7 +13,6 @@ namespace FigmaImporter.V2.Tests
     /// EditMode tests for v2.3.1 patch: validates safety, layout, masks, and 9-slice.
     /// These tests do NOT require Figma API — they test handlers and logic in isolation.
     /// </summary>
-    public class FigmaImporterV230Tests
     public class FigmaImporterV231Tests
     {
         // ============================================================

@@ -36,7 +36,7 @@ namespace FigmaImporter.V2.UI
         public static void ShowWindow()
         {
             FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.3.1");
-            window.minSize = new Vector2.3.1, 450);
+            window.minSize = new Vector2(350, 450);
         }
 
         private void OnGUI()
