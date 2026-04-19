@@ -1,6 +1,7 @@
 using System.IO;
 using UnityEngine;
 using UnityEditor;
+using FigmaImporter.V2.Data;
 
 namespace FigmaImporter.V2.Core.Services
 {
