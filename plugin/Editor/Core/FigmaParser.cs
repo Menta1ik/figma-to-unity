@@ -207,7 +207,40 @@ namespace FigmaImporter.V2.Core
             
             if (Settings != null && !string.IsNullOrEmpty(Settings.basePrefabsPath))
             {
-                new PrefabManager(Settings).UpdateOrCreatePrefab(rootCanvas.gameObject, importTargetName);
+                // Find the actual imported frame (one level below Canvas) to use as the prefab root
+                GameObject targetToPrefab = rootCanvas.gameObject;
+                
+                // 1. Try to find by FigmaNodeId or by Name (fallback)
+                foreach (Transform child in rootCanvas)
+                {
+                    var figmaElem = child.GetComponent<FigmaElement>();
+                    if (figmaElem == null) continue;
+
+                    bool idMatch = response.nodes != null && response.nodes.ContainsKey(figmaElem.FigmaNodeId);
+                    bool nameMatch = child.name == importTargetName;
+
+                    if (idMatch || nameMatch)
+                    {
+                        targetToPrefab = child.gameObject;
+                        break;
+                    }
+                }
+
+                // 2. If specifically searching for a single node and we still don't have a child match, 
+                // take the first child that has a FigmaElement (heuristic fallback)
+                if (targetToPrefab == rootCanvas.gameObject && response.nodes != null && response.nodes.Count == 1)
+                {
+                    foreach (Transform child in rootCanvas)
+                    {
+                        if (child.GetComponent<FigmaElement>() != null)
+                        {
+                            targetToPrefab = child.gameObject;
+                            break;
+                        }
+                    }
+                }
+
+                new PrefabManager(Settings).UpdateOrCreatePrefab(targetToPrefab, importTargetName);
             }
         }
 
