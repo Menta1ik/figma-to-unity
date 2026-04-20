@@ -56,7 +56,7 @@ namespace FigmaImporter.V2.Core.Handlers
                 rt.sizeDelta = new Vector2(boxWidth, boxHeight);
                 rt.anchoredPosition = Vector2.zero; 
                 
-                Debug.Log($"[Figma v2.4.0] Smart Centered Root Frame: '{node.name}' at Center (Global Figma: {boxX}, {boxY})");
+                Debug.Log($"[Figma v2.4.1] Smart Centered Root Frame: '{node.name}' at Center (Global Figma: {boxX}, {boxY})");
                 return; 
             }
 

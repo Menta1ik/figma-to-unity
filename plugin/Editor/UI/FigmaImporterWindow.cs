@@ -35,7 +35,7 @@ namespace FigmaImporter.V2.UI
         [MenuItem("Figma Importer/Sync & Reskin Dashboard")]
         public static void ShowWindow()
         {
-            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.4.0");
+            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.4.1");
             window.minSize = new Vector2(350, 450);
         }
 
@@ -59,7 +59,7 @@ namespace FigmaImporter.V2.UI
                 EditorGUIUtility.labelWidth = 160f;
 
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.4.0", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.4.1", EditorStyles.boldLabel);
             
             // --- SECTION 1: CONNECTION ---
             EditorGUILayout.BeginVertical("box");
@@ -302,7 +302,7 @@ namespace FigmaImporter.V2.UI
                     string jsonPath = Path.Combine(Application.dataPath, "lobby_figma.json");
                     if (!File.Exists(jsonPath))
                     {
-                        Debug.LogError($"[Figma v2.4.0] Local file not found: {jsonPath}");
+                        Debug.LogError($"[Figma v2.4.1] Local file not found: {jsonPath}");
                         return;
                     }
                     jsonContent = File.ReadAllText(jsonPath);
@@ -340,7 +340,7 @@ namespace FigmaImporter.V2.UI
             {
                 Undo.DestroyObjectImmediate(_rootCanvas.GetChild(i).gameObject);
             }
-            Debug.Log("[Figma v2.4.0] Canvas cleared successfully!");
+            Debug.Log("[Figma v2.4.1] Canvas cleared successfully!");
         }
         private async void RunInteractiveTest()
         {

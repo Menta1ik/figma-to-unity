@@ -59,7 +59,7 @@ namespace FigmaImporter.V2.Core
         {
             if (string.IsNullOrEmpty(_accessToken) || string.IsNullOrEmpty(_fileId))
             {
-                Debug.LogError("[Figma v2.4.0] Cannot run Sync without Token and File ID.");
+                Debug.LogError("[Figma v2.4.1] Cannot run Sync without Token and File ID.");
                 return;
             }
 
@@ -227,7 +227,7 @@ namespace FigmaImporter.V2.Core
                 await imageService.SyncImagesAsync(target.name, _handlerContext, _sessionCache, null, ct);
             }
 
-            Debug.Log($"<color=cyan>[Figma v2.4.0] Reskin completed for {target.name}!</color>");
+            Debug.Log($"<color=cyan>[Figma v2.4.1] Reskin completed for {target.name}!</color>");
         }
 
         public async Task RunFontAudit(string nodeId = "", CancellationToken ct = default)
@@ -282,7 +282,7 @@ namespace FigmaImporter.V2.Core
             foreach (var handler in _handlers)
             {
                 try { if (handler.CanHandle(node)) handler.Apply(node, element, _handlerContext); }
-                catch (Exception e) { Debug.LogError($"[Figma v2.4.0] Error in {handler.GetType().Name} for {node.name}: {e.Message}"); }
+                catch (Exception e) { Debug.LogError($"[Figma v2.4.1] Error in {handler.GetType().Name} for {node.name}: {e.Message}"); }
             }
 
             if (node.isMask || node.clipsContent)
@@ -572,7 +572,7 @@ namespace FigmaImporter.V2.Core
                             if (firstChild != null)
                             {
                                 refRes = new Vector2(firstChild.AbsoluteBox.width, firstChild.AbsoluteBox.height);
-                                Debug.Log($"[Figma v2.4.0] Auto-detected Reference Resolution from Frame: {refRes.x}x{refRes.y}");
+                                Debug.Log($"[Figma v2.4.1] Auto-detected Reference Resolution from Frame: {refRes.x}x{refRes.y}");
                             }
                         }
                     }
@@ -588,8 +588,8 @@ namespace FigmaImporter.V2.Core
             }
             
             EditorUtility.SetDirty(scaler);
-            Debug.Log($"[Figma v2.4.0] CanvasScaler updated to {Settings.canvasScaleMode}");
+            Debug.Log($"[Figma v2.4.1] CanvasScaler updated to {Settings.canvasScaleMode}");
         }
     }
-// [Figma-to-Unity] Stencil Mask Guard and Hierarchy Optimization v2.4.0.
+// [Figma-to-Unity] Stencil Mask Guard and Hierarchy Optimization v2.4.1.
 }
