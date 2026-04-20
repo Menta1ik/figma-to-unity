@@ -3,7 +3,10 @@
 
 # Allow the plugin folder and .gitignore
 !/plugin/
-# /plugin/docs/  # Removed to include documentation in the release
+/plugin/docs/
+!/plugin/docs/Developer/
+!/plugin/docs/Developer.meta
+!/plugin/docs.meta
 !.gitignore
 !/README.md
 
