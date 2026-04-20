@@ -76,7 +76,7 @@ Figma API имеет лимиты на количество запросов и 
 
 ---
 
-## 7. Adaptive Layout & Constraints Mapping (v2.4.0)
+## 7. Adaptive Layout & Constraints Mapping (v2.4.1)
 
 Для реализации адаптивности плагин преобразует систему **Constraints** из Figma в настройки **Anchors** и **Offsets** компонента `RectTransform`.
 
@@ -90,9 +90,9 @@ Figma API имеет лимиты на количество запросов и 
 
 ---
 
-## 8. Stencil Guard & Hierarchy Flattening (v2.4.0)
+## 8. Stencil Guard & Hierarchy Flattening (v2.4.1)
 
-В версии 2.4.0 мы решили критическую проблему Unity с переполнением буфера трафарета (Stencil Buffer).
+В версии 2.4.1 мы решили критическую проблему Unity с переполнением буфера трафарета (Stencil Buffer).
 
 ### Механизмы защиты:
 1.  **DismantleAllMaskContainers**: Перед каждым импортом плагин находит технические контейнеры `[Mask]` и «разбирает» их, возвращая объекты в общую иерархии. Это предотвращает бесконечное наслоение масок при повторных синхронизациях.

@@ -140,7 +140,7 @@ namespace FigmaImporter.V2.Core.Handlers
                 // --- PROTECTION AGAINST EMPTY FONT ---
                 if (tmp.font == null)
                 {
-                    Debug.LogError($"[Figma v2.3.1] 💀 CRITICAL ERROR: Font not assigned for text '{node.name}'.");
+                    Debug.LogError($"[Figma v2.4.1] 💀 CRITICAL ERROR: Font not assigned for text '{node.name}'.");
                     tmp.enabled = false; 
                 }
                 else

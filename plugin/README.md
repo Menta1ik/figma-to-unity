@@ -1,4 +1,4 @@
-# Figma Importer v2.3.1 (UPM)
+# Figma Importer v2.4.1 (UPM)
 
 Мощный инструмент для профессионального импорта UI из Figma в Unity с поддержкой **Smart Sync**, автоматизацией префабов и неразрушающим обновлением.
 
@@ -34,7 +34,7 @@ Select the `package.json` file inside the `plugin` folder.
 
 ---
 
-## 🛠 New in v2.3.1 (Production Hardening)
+## 🛠 New in v2.4.1 (Production Hardening)
 *   **Service-Oriented Architecture**: Рефакторинг ядра (выделены `ImageSyncService`, `PrefabManager`), повышающий стабильность и расширяемость.
 *   **Icon Detection Cache**: Оптимизация производительности в `ImageHandler` (кэширование кандидатов на иконки), решающая проблему больших макетов.
 *   **Deep Diagnostics**: Улучшенный `FigmaHealthCheck` с проверкой целостности `asmdef`, версий и архитектурных связей.
