@@ -35,6 +35,13 @@
 - **Non-Destructive Update**: Сохранение ваших скриптов и анимаций при синхронизации.
 - **Batch Image Sync**: Пакетная загрузка ссылок для предотвращения тайм-аутов API.
 
+### 📱 Adaptive Layout (v2.4.0)
+Плагин поддерживает продвинутое масштабирование и перенос констрейнтов:
+- **Enable Constraints Translation**: Автоматический маппинг Figma constraints в анкоры `RectTransform`. (По умолчанию выключено в настройках).
+- **Canvas Scale Mode**: Выбор режима масштабирования (`Constant Pixel Size` или `Scale With Screen Size`).
+- **Match Width or Height**: Критический параметр для адаптивности под разные экраны. 
+- **Reference Resolution**: Автоматическое определение дизайнерского разрешения из Figma.
+
 ---
 
 ## 📜 Лицензия
