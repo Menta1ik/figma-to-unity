@@ -1,4 +1,4 @@
-# 🌌 Figma to Unity Importer v2.4.0 (Stencil Guard Edition)
+# 🌌 Figma to Unity Importer v2.4.1 (Deep Constraints Edition)
 
 **Figma-to-Unity Pipeline** — профессиональный инструмент для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity uGUI. Плагин использует неразрушающую архитектуру **Smart Sync**, позволяя обновлять UI из Figma без потери ваших изменений (скриптов, анимаций) в Unity.
 
@@ -11,7 +11,7 @@
 1. Откройте **Window -> Package Manager** в Unity.
 2. Нажмите **+** -> **Add package from git URL...**.
 3. Вставьте ссылку:
-   `https://github.com/Menta1ik/figma-to-unity.git?path=/plugin`
+   `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.4.1`
 
 ---
 
@@ -24,23 +24,23 @@
 
 ---
 
-## 🛠 Ключевые особенности v2.4.0 (Performance & Stability)
+## 🛠 Ключевые особенности v2.4.1
 
+- **Deep Adaptive Layout**: Полная трансляция Figma Constraints (`Left`, `Right`, `Center`, `Stretch`, `Scale`) в Unity Anchors/Offsets. Покрыто тестами.
 - **Stencil Mask Guard**: Автоматический контроль вложенности масок (лимит 3 уровня). Предотвращает ошибки Unity "stencil mask depth > 8".
 - **Auto RectMask2D Fallback**: Автоматическое переключение на `RectMask2D` при превышении лимита глубины или для простых фигур.
-- **Aggressive Hierarchy Flattening**: Умный демонтаж технических контейнеров `[Mask]` при каждой синхронизации для поддержания чистоты иерархии.
-- **Global API First**: Плагин переключен на работу через Figma API по умолчанию для бесшовной интеграции.
-- **Soft-Delete Mode**: Объекты больше не удаляются физически, а выключаются и помечаются `FigmaOrphanedElement`.
+- **Aggressive Hierarchy Flattening**: Умный демонтаж технических контейнеров `[Mask]` при каждой синхронизации.
+- **Global API First**: Плагин оптимизирован для работы через Figma API.
+- **Soft-Delete Mode**: Объекты помечаются `FigmaOrphanedElement` вместо физического удаления.
 - **Auto Layout Support**: Полная трансляция Figma Auto Layout в Unity `Horizontal/Vertical Layout Group`.
 - **Non-Destructive Update**: Сохранение ваших скриптов и анимаций при синхронизации.
-- **Batch Image Sync**: Пакетная загрузка ссылок для предотвращения тайм-аутов API.
 
-### 📱 Adaptive Layout (v2.4.0)
+### 📱 Adaptive Layout (v2.4.1)
 Плагин поддерживает продвинутое масштабирование и перенос констрейнтов:
-- **Enable Constraints Translation**: Автоматический маппинг Figma constraints в анкоры `RectTransform`. (По умолчанию выключено в настройках).
-- **Canvas Scale Mode**: Выбор режима масштабирования (`Constant Pixel Size` или `Scale With Screen Size`).
-- **Match Width or Height**: Критический параметр для адаптивности под разные экраны. 
-- **Reference Resolution**: Автоматическое определение дизайнерского разрешения из Figma.
+- **Enable Constraints Translation**: Автоматический маппинг Figma constraints в анкоры `RectTransform`.
+- **Canvas Scale Mode**: Режим масштабирования (`Scale With Screen Size`) настраивается автоматически.
+- **Match Width or Height**: Интеллектуальный расчет параметра под разрешение фрейма. 
+- **Reference Resolution**: Математически точное определение разрешения из Figma.
 
 ---
 
