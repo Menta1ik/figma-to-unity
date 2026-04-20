@@ -89,35 +89,24 @@ namespace FigmaImporter.V2.Core.Handlers
                 case "LEFT":
                     rt.anchorMin = new Vector2(0, rt.anchorMin.y);
                     rt.anchorMax = new Vector2(0, rt.anchorMax.y);
-                    rt.offsetMin = new Vector2(nodeBbox.x - parentBbox.x, rt.offsetMin.y);
-                    rt.offsetMax = new Vector2(rt.offsetMin.x + nodeBbox.width, rt.offsetMax.y);
                     break;
                 case "RIGHT":
                     rt.anchorMin = new Vector2(1, rt.anchorMin.y);
                     rt.anchorMax = new Vector2(1, rt.anchorMax.y);
-                    rt.offsetMax = new Vector2(-(parentBbox.x + parentBbox.width - nodeBbox.x - nodeBbox.width), rt.offsetMax.y);
-                    rt.offsetMin = new Vector2(rt.offsetMax.x - nodeBbox.width, rt.offsetMin.y);
                     break;
                 case "CENTER":
                     rt.anchorMin = new Vector2(0.5f, rt.anchorMin.y);
                     rt.anchorMax = new Vector2(0.5f, rt.anchorMax.y);
-                    float centerX = (nodeBbox.x + nodeBbox.width * 0.5f) - (parentBbox.x + parentBbox.width * 0.5f);
-                    rt.offsetMin = new Vector2(centerX - nodeBbox.width * 0.5f, rt.offsetMin.y);
-                    rt.offsetMax = new Vector2(centerX + nodeBbox.width * 0.5f, rt.offsetMax.y);
                     break;
                 case "LEFT_RIGHT": // STRETCH
                     rt.anchorMin = new Vector2(0, rt.anchorMin.y);
                     rt.anchorMax = new Vector2(1, rt.anchorMax.y);
-                    rt.offsetMin = new Vector2(nodeBbox.x - parentBbox.x, rt.offsetMin.y);
-                    rt.offsetMax = new Vector2(-(parentBbox.x + parentBbox.width - nodeBbox.x - nodeBbox.width), rt.offsetMax.y);
                     break;
                 case "SCALE":
                     float xMin = (nodeBbox.x - parentBbox.x) / parentBbox.width;
                     float xMax = (nodeBbox.x + nodeBbox.width - parentBbox.x) / parentBbox.width;
                     rt.anchorMin = new Vector2(xMin, rt.anchorMin.y);
                     rt.anchorMax = new Vector2(xMax, rt.anchorMax.y);
-                    rt.offsetMin = new Vector2(0, rt.offsetMin.y);
-                    rt.offsetMax = new Vector2(0, rt.offsetMax.y);
                     break;
             }
 
@@ -127,37 +116,42 @@ namespace FigmaImporter.V2.Core.Handlers
                 case "TOP":
                     rt.anchorMin = new Vector2(rt.anchorMin.x, 1);
                     rt.anchorMax = new Vector2(rt.anchorMax.x, 1);
-                    rt.offsetMax = new Vector2(rt.offsetMax.x, -(nodeBbox.y - parentBbox.y));
-                    rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMax.y - nodeBbox.height);
                     break;
                 case "BOTTOM":
                     rt.anchorMin = new Vector2(rt.anchorMin.x, 0);
                     rt.anchorMax = new Vector2(rt.anchorMax.x, 0);
-                    rt.offsetMin = new Vector2(rt.offsetMin.x, (parentBbox.y + parentBbox.height) - (nodeBbox.y + nodeBbox.height));
-                    rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMin.y + nodeBbox.height);
                     break;
                 case "CENTER":
                     rt.anchorMin = new Vector2(rt.anchorMin.x, 0.5f);
                     rt.anchorMax = new Vector2(rt.anchorMax.x, 0.5f);
-                    float centerY = -((nodeBbox.y + nodeBbox.height * 0.5f) - (parentBbox.y + parentBbox.height * 0.5f));
-                    rt.offsetMin = new Vector2(rt.offsetMin.x, centerY - nodeBbox.height * 0.5f);
-                    rt.offsetMax = new Vector2(rt.offsetMax.x, centerY + nodeBbox.height * 0.5f);
                     break;
                 case "TOP_BOTTOM": // STRETCH
                     rt.anchorMin = new Vector2(rt.anchorMin.x, 0);
                     rt.anchorMax = new Vector2(rt.anchorMax.x, 1);
-                    rt.offsetMin = new Vector2(rt.offsetMin.x, (parentBbox.y + parentBbox.height) - (nodeBbox.y + nodeBbox.height));
-                    rt.offsetMax = new Vector2(rt.offsetMax.x, -(nodeBbox.y - parentBbox.y));
                     break;
                 case "SCALE":
-                    float yMax = 1f - ((nodeBbox.y - parentBbox.y) / parentBbox.height);
                     float yMin = 1f - ((nodeBbox.y + nodeBbox.height - parentBbox.y) / parentBbox.height);
+                    float yMax = 1f - ((nodeBbox.y - parentBbox.y) / parentBbox.height);
                     rt.anchorMin = new Vector2(rt.anchorMin.x, yMin);
                     rt.anchorMax = new Vector2(rt.anchorMax.x, yMax);
-                    rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
-                    rt.offsetMax = new Vector2(rt.offsetMax.x, 0);
                     break;
             }
+
+            // Now apply offsets based on calculated anchors
+            // Formula: offset = Position - (Anchor * ParentSize)
+            float left = nodeBbox.x - parentBbox.x;
+            float right = nodeBbox.x + nodeBbox.width - parentBbox.x;
+            float top = nodeBbox.y - parentBbox.y;
+            float bottom = nodeBbox.y + nodeBbox.height - parentBbox.y;
+
+            // Unity Y is bottom-up, Figma is top-down
+            // parentHeight - top = Unity top
+            // parentHeight - bottom = Unity bottom
+            float unityTop = parentBbox.height - top;
+            float unityBottom = parentBbox.height - bottom;
+
+            rt.offsetMin = new Vector2(left - (rt.anchorMin.x * parentBbox.width), unityBottom - (rt.anchorMin.y * parentBbox.height));
+            rt.offsetMax = new Vector2(right - (rt.anchorMax.x * parentBbox.width), unityTop - (rt.anchorMax.y * parentBbox.height));
         }
 
         private void ApplyAbsolutePosition(FigmaNode node, FigmaElement target, RectTransform rt)

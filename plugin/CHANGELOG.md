@@ -5,6 +5,16 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 и проект придерживается [Семантического Версионирования](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2026-04-20
+### Добавлено
+- **Deep Adaptive Layout**: Полная поддержка Figma Constraints (Left, Right, Center, Stretch, Scale).
+- **Unity Test Suite**: Добавлен набор тестов `ConstraintsMappingTests` для верификации адаптивного поведения.
+- **Руководство для дизайнеров**: Обновлены лучшие практики по созданию адаптивных интерфейсов.
+
+### Исправлено
+- Погрешность в расчетах `RectTransform.anchoredPosition` при использовании режима `SCALE`.
+- Некорректное позиционирование элементов с констрейнтом `BOTTOM` в глубоко вложенных фреймах.
+
 ## [2.4.0] - 2026-04-20
 
 ### Добавлено (Stencil Guard Edition)
