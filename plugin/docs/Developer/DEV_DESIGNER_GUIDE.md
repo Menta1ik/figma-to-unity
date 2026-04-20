@@ -51,5 +51,17 @@
 * **Masks**: Маскирование в Figma (sibling mask) транслируется в Unity как `Parent Mask`. Группируйте маскируемые объекты внутри фрейма с маской.
 
 ---
+
+## 🏗 4. Adaptive Layout & Constraints (v2.4.0)
+
+В версии 2.4.0 плагин научился понимать «намерения» дизайнера относительно того, как интерфейс должен вести себя при изменении разрешения.
+
+### Как использовать:
+1.  **Constraints в Figma**: Настройте привязки (Left, Right, Scale, Center) для элементов внутри фреймов. Плагин автоматически создаст **Anchors** в Unity.
+    *   *Совет*: Используйте **Scale**, если хотите, чтобы элемент растягивался пропорционально родителю.
+2.  **Auto Layout**: По-прежнему поддерживается и имеет приоритет. Если на фрейме включен Auto Layout — плагин создаст `Horizontal/Vertical Layout Group`.
+3.  **Root Canvas**: В настройках (`FigmaImporterSettings`) выберите `Canvas Scale Mode -> Scale With Screen Size`. Это позволит всему интерфейсу корректно масштабироваться под разные экраны (Mobile, Tablet, PC).
+
+---
 **BrainySoftware OU © 2026**
 **Status:** Production Ready (Staging Verified)
