@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEditor;
 using TMPro;
 using System.Linq;
 using FigmaImporter.V2.Data;
@@ -94,21 +96,23 @@ namespace FigmaImporter.V2.Core.Handlers
 
                     if (bestMatch?.targetTMPAsset != null)
                     {
-                        if (tmp.font != bestMatch.targetTMPAsset)
+                        var oldFont = tmp.font != null ? tmp.font.name : "null";
+                        if (SafeSetFont(tmp, bestMatch.targetTMPAsset))
                         {
-                            var oldFont = tmp.font != null ? tmp.font.name : "null";
-                            tmp.font = bestMatch.targetTMPAsset;
                             Debug.Log($"<color=cyan>[FigmaImporter]</color> Font replaced: <b>{node.name}</b> ('{oldFont}' -> '<b>{tmp.font.name}</b>')");
                         }
                     }
                     else
                     {
-                        Debug.LogWarning($"<color=red>[FigmaImporter] Font Mapping Missing!</color>\n" +
-                                         $"Figma: <b>{figmaFamily}</b> (Weight: {weight})\n" +
-                                         $"PostScript: <color=orange>{postScript}</color>\n" +
-                                         $"<i>Please add this to your FontMappingTable asset.</i>");
+                        if (!string.IsNullOrEmpty(figmaFamily))
+                        {
+                            Debug.LogWarning($"<color=red>[FigmaImporter] Font Mapping Missing!</color>\n" +
+                                             $"Figma: <b>{figmaFamily}</b> (Weight: {weight})\n" +
+                                             $"PostScript: <color=orange>{postScript}</color>\n" +
+                                             $"<i>Please add this to your FontMappingTable asset.</i>");
+                        }
                         
-                        if (context.GlobalFont != null) tmp.font = context.GlobalFont;
+                        SafeSetFont(tmp, context.GlobalFont);
                     }
 
                     // --- VISIBILITY DIAGNOSTICS ---
@@ -121,10 +125,7 @@ namespace FigmaImporter.V2.Core.Handlers
                         // Debug.Log($"<color=gray>[Diagnostic]</color> Text '{node.name}' hidden...");
                     }
 
-                    // FORCED UPDATE (Important for Unity 6)
-                    tmp.SetAllDirty();
-                    tmp.Rebuild(UnityEngine.UI.CanvasUpdate.PreRender);
-                    Canvas.ForceUpdateCanvases(); 
+                    // FORCED UPDATE (Removed in v2.3.2 to prevent stencil depth recursion)
                     UnityEditor.EditorUtility.SetDirty(tmp);
 
                     // LOG FINAL STATE (Disabled to reduce noise)
@@ -177,6 +178,24 @@ namespace FigmaImporter.V2.Core.Handlers
 
             // Fallback
             return TextAlignmentOptions.Left;
+        }
+
+        private bool SafeSetFont(TextMeshProUGUI tmp, TMP_FontAsset font)
+        {
+            if (font == null || tmp == null) return false;
+            // No need to set if already matches
+            if (tmp.font == font) return true;
+
+            try
+            {
+                tmp.font = font;
+                return true;
+            }
+            catch (System.Exception)
+            {
+                // In Unity 6+, internal TMP code can throw NRE if font asset is not fully initialized (like in unit tests)
+                return false;
+            }
         }
     }
 }

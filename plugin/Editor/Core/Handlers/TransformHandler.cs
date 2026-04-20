@@ -14,24 +14,12 @@ namespace FigmaImporter.V2.Core.Handlers
             RectTransform rt = target.GetComponent<RectTransform>();
             if (rt == null) 
             {
-                // If we can't add it (prefab instance), just use regular transform position as fallback, or skip.
                 if (PrefabUtility.IsPartOfAnyPrefab(target.gameObject))
                 {
-                    // For regular Transform, we just move it.
                     target.transform.localPosition = Vector3.zero;
                     return;
                 }
                 rt = target.gameObject.AddComponent<RectTransform>();
-            }
-
-            // 1. HARD RESET
-            if (rt != null)
-            {
-                rt.anchorMin = new Vector2(0, 1);
-                rt.anchorMax = new Vector2(0, 1);
-                rt.pivot = new Vector2(0, 1);
-                rt.localScale = Vector3.one;
-                rt.localRotation = Quaternion.identity;
             }
 
             // Fallback for missing bounding box (e.g. GROUP nodes)
@@ -40,29 +28,162 @@ namespace FigmaImporter.V2.Core.Handlers
             float boxWidth = node.absoluteBoundingBox != null ? node.absoluteBoundingBox.width : 1f;
             float boxHeight = node.absoluteBoundingBox != null ? node.absoluteBoundingBox.height : 1f;
 
-            target.AbsoluteBox = new Rect(boxX, boxY, boxWidth, boxHeight);
-
-            // 2. CALCULATE LOCAL POSITION
-            float localX = 0, localY = 0;
-            if (target.transform.parent != null)
+            // PROTECT ROOT: Never modify the pivot, scale or position of the Root Canvas itself
+            if (target.transform == context.RootTransform)
             {
-                var parentElement = target.transform.parent.GetComponent<FigmaElement>();
-                if (parentElement != null)
+                target.AbsoluteBox = new Rect(boxX, boxY, boxWidth, boxHeight);
+                return;
+            }
+
+            target.AbsoluteBox = new Rect(boxX, boxY, boxWidth, boxHeight);
+            target.gameObject.name = node.name;
+            target.gameObject.SetActive(node.visible != false);
+
+            // Hard reset scale/rotation
+            rt.localScale = Vector3.one;
+            rt.localRotation = Quaternion.identity;
+
+            // SMART CENTERING / POSITIONING: If this is a top-level child of Canvas
+            if (context.ParentNode == null)
+            {
+                // CRITICAL: We must store the absolute box even for root objects, 
+                // so their children can calculate relative positions correctly!
+                target.AbsoluteBox = new Rect(boxX, boxY, boxWidth, boxHeight);
+
+                rt.anchorMin = new Vector2(0.5f, 0.5f);
+                rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(0.5f, 0.5f); 
+                rt.sizeDelta = new Vector2(boxWidth, boxHeight);
+                rt.anchoredPosition = Vector2.zero; 
+                
+                Debug.Log($"[Figma v2.4.0] Smart Centered Root Frame: '{node.name}' at Center (Global Figma: {boxX}, {boxY})");
+                return; 
+            }
+
+            rt.pivot = new Vector2(0, 1);
+
+            if (context.Settings != null && context.Settings.enableConstraintsTranslation && node.layoutMode == null)
+            {
+                ApplyConstraints(node, rt, context);
+            }
+            else
+            {
+                ApplyAbsolutePosition(node, target, rt);
+            }
+        }
+
+        private void ApplyConstraints(FigmaNode node, RectTransform rt, FigmaHandlerContext context)
+        {
+            if (node.constraints == null || context.ParentNode == null || context.ParentNode.absoluteBoundingBox == null || node.absoluteBoundingBox == null)
+            {
+                ApplyAbsolutePosition(node, null, rt);
+                return;
+            }
+
+            var parentBbox = context.ParentNode.absoluteBoundingBox;
+            var nodeBbox = node.absoluteBoundingBox;
+
+            // X-Axis
+            switch (node.constraints.horizontal)
+            {
+                case "LEFT":
+                    rt.anchorMin = new Vector2(0, rt.anchorMin.y);
+                    rt.anchorMax = new Vector2(0, rt.anchorMax.y);
+                    rt.offsetMin = new Vector2(nodeBbox.x - parentBbox.x, rt.offsetMin.y);
+                    rt.offsetMax = new Vector2(rt.offsetMin.x + nodeBbox.width, rt.offsetMax.y);
+                    break;
+                case "RIGHT":
+                    rt.anchorMin = new Vector2(1, rt.anchorMin.y);
+                    rt.anchorMax = new Vector2(1, rt.anchorMax.y);
+                    rt.offsetMax = new Vector2(-(parentBbox.x + parentBbox.width - nodeBbox.x - nodeBbox.width), rt.offsetMax.y);
+                    rt.offsetMin = new Vector2(rt.offsetMax.x - nodeBbox.width, rt.offsetMin.y);
+                    break;
+                case "CENTER":
+                    rt.anchorMin = new Vector2(0.5f, rt.anchorMin.y);
+                    rt.anchorMax = new Vector2(0.5f, rt.anchorMax.y);
+                    float centerX = (nodeBbox.x + nodeBbox.width * 0.5f) - (parentBbox.x + parentBbox.width * 0.5f);
+                    rt.offsetMin = new Vector2(centerX - nodeBbox.width * 0.5f, rt.offsetMin.y);
+                    rt.offsetMax = new Vector2(centerX + nodeBbox.width * 0.5f, rt.offsetMax.y);
+                    break;
+                case "LEFT_RIGHT": // STRETCH
+                    rt.anchorMin = new Vector2(0, rt.anchorMin.y);
+                    rt.anchorMax = new Vector2(1, rt.anchorMax.y);
+                    rt.offsetMin = new Vector2(nodeBbox.x - parentBbox.x, rt.offsetMin.y);
+                    rt.offsetMax = new Vector2(-(parentBbox.x + parentBbox.width - nodeBbox.x - nodeBbox.width), rt.offsetMax.y);
+                    break;
+                case "SCALE":
+                    float xMin = (nodeBbox.x - parentBbox.x) / parentBbox.width;
+                    float xMax = (nodeBbox.x + nodeBbox.width - parentBbox.x) / parentBbox.width;
+                    rt.anchorMin = new Vector2(xMin, rt.anchorMin.y);
+                    rt.anchorMax = new Vector2(xMax, rt.anchorMax.y);
+                    rt.offsetMin = new Vector2(0, rt.offsetMin.y);
+                    rt.offsetMax = new Vector2(0, rt.offsetMax.y);
+                    break;
+            }
+
+            // Y-Axis
+            switch (node.constraints.vertical)
+            {
+                case "TOP":
+                    rt.anchorMin = new Vector2(rt.anchorMin.x, 1);
+                    rt.anchorMax = new Vector2(rt.anchorMax.x, 1);
+                    rt.offsetMax = new Vector2(rt.offsetMax.x, -(nodeBbox.y - parentBbox.y));
+                    rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMax.y - nodeBbox.height);
+                    break;
+                case "BOTTOM":
+                    rt.anchorMin = new Vector2(rt.anchorMin.x, 0);
+                    rt.anchorMax = new Vector2(rt.anchorMax.x, 0);
+                    rt.offsetMin = new Vector2(rt.offsetMin.x, (parentBbox.y + parentBbox.height) - (nodeBbox.y + nodeBbox.height));
+                    rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMin.y + nodeBbox.height);
+                    break;
+                case "CENTER":
+                    rt.anchorMin = new Vector2(rt.anchorMin.x, 0.5f);
+                    rt.anchorMax = new Vector2(rt.anchorMax.x, 0.5f);
+                    float centerY = -((nodeBbox.y + nodeBbox.height * 0.5f) - (parentBbox.y + parentBbox.height * 0.5f));
+                    rt.offsetMin = new Vector2(rt.offsetMin.x, centerY - nodeBbox.height * 0.5f);
+                    rt.offsetMax = new Vector2(rt.offsetMax.x, centerY + nodeBbox.height * 0.5f);
+                    break;
+                case "TOP_BOTTOM": // STRETCH
+                    rt.anchorMin = new Vector2(rt.anchorMin.x, 0);
+                    rt.anchorMax = new Vector2(rt.anchorMax.x, 1);
+                    rt.offsetMin = new Vector2(rt.offsetMin.x, (parentBbox.y + parentBbox.height) - (nodeBbox.y + nodeBbox.height));
+                    rt.offsetMax = new Vector2(rt.offsetMax.x, -(nodeBbox.y - parentBbox.y));
+                    break;
+                case "SCALE":
+                    float yMax = 1f - ((nodeBbox.y - parentBbox.y) / parentBbox.height);
+                    float yMin = 1f - ((nodeBbox.y + nodeBbox.height - parentBbox.y) / parentBbox.height);
+                    rt.anchorMin = new Vector2(rt.anchorMin.x, yMin);
+                    rt.anchorMax = new Vector2(rt.anchorMax.x, yMax);
+                    rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
+                    rt.offsetMax = new Vector2(rt.offsetMax.x, 0);
+                    break;
+            }
+        }
+
+        private void ApplyAbsolutePosition(FigmaNode node, FigmaElement target, RectTransform rt)
+        {
+            // Figma's absolute positioning is relative to Top-Left
+            rt.anchorMin = new Vector2(0, 1);
+            rt.anchorMax = new Vector2(0, 1);
+            rt.pivot = new Vector2(0, 1);
+
+            float boxWidth = node.absoluteBoundingBox != null ? node.absoluteBoundingBox.width : 1f;
+            float boxHeight = node.absoluteBoundingBox != null ? node.absoluteBoundingBox.height : 1f;
+            rt.sizeDelta = new Vector2(boxWidth, boxHeight);
+
+            float localX = 0, localY = 0;
+            if (rt.transform.parent != null)
+            {
+                var parentElement = rt.transform.parent.GetComponent<FigmaElement>();
+                if (parentElement != null && node.absoluteBoundingBox != null)
                 {
-                    localX = boxX - parentElement.AbsoluteBox.x;
-                    localY = -(boxY - parentElement.AbsoluteBox.y);
+                    // Calculate relative offset from parent's absolute Top-Left
+                    localX = node.absoluteBoundingBox.x - parentElement.AbsoluteBox.x;
+                    localY = -(node.absoluteBoundingBox.y - parentElement.AbsoluteBox.y);
                 }
             }
 
-            // 3. APPLY TO UNITY (Validation happens in Parser Stages 2 & 3)
-            rt.sizeDelta = new Vector2(boxWidth, boxHeight);
-            rt.anchoredPosition3D = new Vector3(localX, localY, 0f);
-            rt.localScale = Vector3.one;
-
-            target.gameObject.name = node.name;
-            target.gameObject.SetActive(node.visible != false);
-            
-            // NO MASKING HERE. Deferred to FigmaParser.ApplyDeferredMasks() for stability.
+            rt.anchoredPosition = new Vector2(localX, localY);
         }
     }
 }

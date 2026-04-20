@@ -33,5 +33,20 @@ namespace FigmaImporter.V2.Data
         public string inputMarker = "[Input]";
         public string scrollMarker = "[Scroll]";
         public string toggleMarker = "[Toggle]";
+
+        [Header("Adaptive Layout")]
+        [Tooltip("If true, translate Figma constraints to RectTransform anchors and offsets.")]
+        public bool enableConstraintsTranslation = false;
+
+        public enum CanvasScaleMode { None, ConstantPixelSize, ScaleWithScreenSize }
+        [Tooltip("How the root Canvas should scale.")]
+        public CanvasScaleMode canvasScaleMode = CanvasScaleMode.None;
+
+        [Tooltip("The resolution that the UI is designed for (e.g. 1920x1080).")]
+        public Vector2 referenceResolution = new Vector2(1920, 1080);
+
+        [Range(0, 1)]
+        [Tooltip("0 = Width, 1 = Height. 0.5 = Balanced.")]
+        public float matchWidthOrHeight = 0.5f;
     }
 }

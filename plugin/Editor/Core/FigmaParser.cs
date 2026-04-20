@@ -20,7 +20,7 @@ namespace FigmaImporter.V2.Core
     public class FigmaParser
     {
         private TransformAuditReport _auditReport;
-        private List<(FigmaNode node, FigmaElement element)> _deferredMasks;
+        private List<(FigmaNode node, FigmaElement element, int depth)> _deferredMasks;
         private Dictionary<string, FigmaElement> _existingCache;
         private Dictionary<string, FigmaElement> _sessionCache; 
         private HashSet<string> _processedIds;
@@ -59,7 +59,7 @@ namespace FigmaImporter.V2.Core
         {
             if (string.IsNullOrEmpty(_accessToken) || string.IsNullOrEmpty(_fileId))
             {
-                Debug.LogError("[Figma v2.3.1] Cannot run Sync without Token and File ID.");
+                Debug.LogError("[Figma v2.4.0] Cannot run Sync without Token and File ID.");
                 return;
             }
 
@@ -84,7 +84,7 @@ namespace FigmaImporter.V2.Core
             if (response == null) return;
 
             _auditReport = new TransformAuditReport();
-            _deferredMasks = new List<(FigmaNode, FigmaElement)>();
+            _deferredMasks = new List<(FigmaNode, FigmaElement, int)>();
             _processedIds = new HashSet<string>();
             _sessionCache = new Dictionary<string, FigmaElement>();
             CreatedCount = 0; UpdatedCount = 0; SkippedCount = 0;
@@ -114,10 +114,30 @@ namespace FigmaImporter.V2.Core
             }
 
             var allElements = rootCanvas.GetComponentsInChildren<FigmaElement>(true);
+            EnsureUnpacked(rootCanvas.gameObject);
+            _handlerContext.RootTransform = rootCanvas;
             _existingCache = allElements.Where(e => !string.IsNullOrEmpty(e.FigmaNodeId)).ToDictionary(e => e.FigmaNodeId, e => e);
+
+            // NEW: Aggressively dismantle all legacy [Mask] containers before starting the sync.
+            // This prevents "depth > 8" errors caused by old technical containers nesting recursively.
+            DismantleAllMaskContainers(rootCanvas);
 
             Canvas canvas = rootCanvas.GetComponent<Canvas>();
             CanvasScaler scaler = rootCanvas.GetComponent<CanvasScaler>();
+            
+            // Force reset Root Canvas position and pivot to ensure it's not shifted off-screen
+            RectTransform rootRt = rootCanvas.GetComponent<RectTransform>();
+            if (rootRt != null)
+            {
+                Undo.RecordObject(rootRt, "Reset Root Canvas Position");
+                rootRt.anchoredPosition = Vector2.zero;
+                rootRt.anchorMin = Vector2.zero;
+                rootRt.anchorMax = Vector2.one;
+                rootRt.pivot = new Vector2(0.5f, 0.5f);
+                rootRt.offsetMin = Vector2.zero;
+                rootRt.offsetMax = Vector2.zero;
+                rootRt.localScale = Vector3.one;
+            }
             bool wasCanvasEnabled = canvas != null && canvas.enabled;
             bool wasScalerEnabled = scaler != null && scaler.enabled;
 
@@ -145,10 +165,11 @@ namespace FigmaImporter.V2.Core
 
                 foreach (var node in topNodes)
                 {
-                    SyncRecursive(node, rootCanvas, rootCanvas.name, ref current, total, onProgress, ct);
+                    SyncRecursive(node, rootCanvas, rootCanvas.name, ref current, total, onProgress, ct, 0);
                 }
                 
                 ApplyDeferredMasks();
+                CleanupOrphanedContainers(rootCanvas);
                 _auditReport.PrintReport();
 
                 if (DownloadImages && _handlerContext.ImageNodesToDownload.Count > 0)
@@ -156,6 +177,9 @@ namespace FigmaImporter.V2.Core
                     var imageService = new ImageSyncService(_accessToken, _fileId, Settings);
                     await imageService.SyncImagesAsync(rootCanvas.name, _handlerContext, _sessionCache, onProgress, ct);
                 }
+
+                ApplyCanvasScaler(rootCanvas);
+                Canvas.ForceUpdateCanvases(); 
             }
             finally
             {
@@ -165,6 +189,8 @@ namespace FigmaImporter.V2.Core
             }
 
             HandleDeletedElements();
+            CleanupOrphanedContainers(rootCanvas);
+            
             if (Settings != null && !string.IsNullOrEmpty(Settings.basePrefabsPath))
             {
                 new PrefabManager(Settings).UpdateOrCreatePrefab(rootCanvas.gameObject);
@@ -186,9 +212,11 @@ namespace FigmaImporter.V2.Core
             _handlerContext = new FigmaHandlerContext { Settings = Settings };
             if (FontMapTable != null) { _handlerContext.FontMappings = FontMapTable.Mappings; _handlerContext.GlobalFont = FontMapTable.GlobalFallbackFont; }
             
-            _sessionCache = new Dictionary<string, FigmaElement>();
+            _existingCache = new Dictionary<string, FigmaElement>();
             var allElements = target.GetComponentsInChildren<FigmaElement>(true);
-            foreach (var e in allElements) if (!string.IsNullOrEmpty(e.FigmaNodeId)) _sessionCache[e.FigmaNodeId] = e;
+            foreach (var e in allElements) if (!string.IsNullOrEmpty(e.FigmaNodeId)) _existingCache[e.FigmaNodeId] = e;
+
+            DismantleAllMaskContainers(target);
 
             var reskinHandler = new ReskinHandler(_handlerContext);
             reskinHandler.ApplyReskin(target.gameObject, newNode);
@@ -199,7 +227,7 @@ namespace FigmaImporter.V2.Core
                 await imageService.SyncImagesAsync(target.name, _handlerContext, _sessionCache, null, ct);
             }
 
-            Debug.Log($"<color=cyan>[Figma v2.3.1] Reskin completed for {target.name}!</color>");
+            Debug.Log($"<color=cyan>[Figma v2.4.0] Reskin completed for {target.name}!</color>");
         }
 
         public async Task RunFontAudit(string nodeId = "", CancellationToken ct = default)
@@ -219,7 +247,7 @@ namespace FigmaImporter.V2.Core
             finally { EditorUtility.ClearProgressBar(); }
         }
 
-        private void SyncRecursive(FigmaNode node, Transform parent, string path, ref int current, int total, Action<int, int, string> onProgress, CancellationToken ct)
+        private void SyncRecursive(FigmaNode node, Transform parent, string path, ref int current, int total, Action<int, int, string> onProgress, CancellationToken ct, int depth)
         {
             if (node == null) return;
             ct.ThrowIfCancellationRequested();
@@ -231,10 +259,13 @@ namespace FigmaImporter.V2.Core
             if (_existingCache != null && _existingCache.ContainsKey(node.id))
             {
                 element = _existingCache[node.id];
+                // CRITICAL: Pull element out of any existing [Mask] containers and reset to the logical parent
+                element.transform.SetParent(parent, false);
                 UpdatedCount++;
             }
             else
             {
+                EnsureUnpacked(parent.gameObject);
                 GameObject go = new GameObject(node.name);
                 go.transform.SetParent(parent, false);
                 element = go.AddComponent<FigmaElement>();
@@ -251,17 +282,30 @@ namespace FigmaImporter.V2.Core
             foreach (var handler in _handlers)
             {
                 try { if (handler.CanHandle(node)) handler.Apply(node, element, _handlerContext); }
-                catch (Exception e) { Debug.LogError($"[Figma v2.3.1] Error in {handler.GetType().Name} for {node.name}: {e.Message}"); }
+                catch (Exception e) { Debug.LogError($"[Figma v2.4.0] Error in {handler.GetType().Name} for {node.name}: {e.Message}"); }
             }
 
             if (node.isMask || node.clipsContent)
             {
-                _deferredMasks.Add((node, element));
+                _deferredMasks.Add((node, element, depth));
             }
 
             if (node.children != null)
             {
-                foreach (var child in node.children) SyncRecursive(child, element.transform, path + "/" + node.name, ref current, total, onProgress, ct);
+                var previousParent = _handlerContext.ParentNode;
+                _handlerContext.ParentNode = node;
+                
+                try
+                {
+                    foreach (var child in node.children) 
+                    {
+                        SyncRecursive(child, element.transform, path + "/" + node.name, ref current, total, onProgress, ct, depth + 1);
+                    }
+                }
+                finally
+                {
+                    _handlerContext.ParentNode = previousParent;
+                }
             }
         }
 
@@ -329,7 +373,7 @@ namespace FigmaImporter.V2.Core
         {
             if (_deferredMasks == null || _deferredMasks.Count == 0) return;
 
-            foreach (var (maskNode, maskElement) in _deferredMasks)
+            foreach (var (maskNode, maskElement, depth) in _deferredMasks)
             {
                 if (maskElement == null || maskElement.gameObject == null) continue;
 
@@ -354,13 +398,11 @@ namespace FigmaImporter.V2.Core
                 {
                     int maskSiblingIndex = maskTransform.GetSiblingIndex();
                     
-                    // Create container for mask and its siblings
                     var containerGo = new GameObject($"[Mask] {maskGo.name}");
                     var containerRect = containerGo.AddComponent<RectTransform>();
                     containerGo.transform.SetParent(parentTransform, false);
                     containerGo.transform.SetSiblingIndex(maskSiblingIndex);
 
-                    // Sync RectTransform: copy anchor/pivot/size from mask to container
                     var maskRect = maskGo.GetComponent<RectTransform>();
                     if (maskRect != null)
                     {
@@ -371,16 +413,45 @@ namespace FigmaImporter.V2.Core
                         containerRect.anchoredPosition = maskRect.anchoredPosition;
                     }
 
-                    // Add Mask or RectMask2D
-                    bool isRect = (maskNode.type == "RECTANGLE" || maskNode.type == "FRAME") && maskNode.cornerRadius == 0f;
-                    if (isRect)
+                    // HEURISTIC: Calculate current stencil depth in Unity hierarchy
+                    int currentStencilDepth = 0;
+                    Transform t = containerGo.transform.parent;
+                    while (t != null)
                     {
-                        containerGo.AddComponent<RectMask2D>();
+                        if (t.GetComponent<Mask>() != null) currentStencilDepth++;
+                        t = t.parent;
+                    }
+
+                    // Strict complexity check: ONLY VECTOR and BOOLEAN_OPERATION can use Stencil
+                    // Everything else (Rectangle, Star, Polygon, RegularPolygon, Frame) uses RectMask2D
+                    bool isComplex = (maskNode.type == "VECTOR" || maskNode.type == "BOOLEAN_OPERATION" || maskNode.type == "STAR");
+                    
+                    // Force RectMask2D if we reached a safe stencil limit (3 is safest for complex nested UI)
+                    // or if it's a simple shape.
+                    bool forceRectMask = (currentStencilDepth >= 3) || !isComplex;
+                    
+                    if (forceRectMask)
+                    {
+                        if (containerGo.GetComponent<Mask>() != null) UnityEngine.Object.DestroyImmediate(containerGo.GetComponent<Mask>());
+                        if (containerGo.GetComponent<Image>() != null) containerGo.GetComponent<Image>().enabled = false;
+                        
+                        if (containerGo.GetComponent<RectMask2D>() == null)
+                            containerGo.AddComponent<RectMask2D>();
+                            
+                        string reason = !isComplex ? "Simple Shape" : "Depth Limit Reached";
+                        Debug.Log($"[Mask Optimization] '{maskGo.name}' (type: {maskNode.type}) using RectMask2D (Reason: {reason}, Current Depth: {currentStencilDepth})");
                     }
                     else
                     {
-                        var maskImage = containerGo.AddComponent<Image>();
-                        maskImage.color = new Color(1, 1, 1, 0.01f); // Near invisible
+                        // CLEANUP: Ensure no conflicting components exist
+                        if (containerGo.GetComponent<RectMask2D>() != null) UnityEngine.Object.DestroyImmediate(containerGo.GetComponent<RectMask2D>());
+                        if (maskGo.GetComponent<RectMask2D>() != null) UnityEngine.Object.DestroyImmediate(maskGo.GetComponent<RectMask2D>());
+                        if (maskGo.GetComponent<Mask>() != null) UnityEngine.Object.DestroyImmediate(maskGo.GetComponent<Mask>());
+                        
+                        // Use Stencil Mask for complex shapes
+                        var maskImage = containerGo.GetComponent<Image>() ?? containerGo.AddComponent<Image>();
+                        maskImage.enabled = true;
+                        maskImage.color = new Color(1, 1, 1, 0.01f);
                         maskImage.raycastTarget = false;
                         
                         var sourceImage = maskGo.GetComponent<Image>();
@@ -390,13 +461,15 @@ namespace FigmaImporter.V2.Core
                             maskImage.type = sourceImage.type;
                         }
                         
-                        containerGo.AddComponent<Mask>().showMaskGraphic = false;
+                        if (containerGo.GetComponent<Mask>() == null)
+                            containerGo.AddComponent<Mask>().showMaskGraphic = false;
+                            
+                        Debug.Log($"[Mask Optimization] '{maskGo.name}' using STENCIL Mask (Complex Shape and Depth: {currentStencilDepth})");
                     }
 
-                    // Move original mask node inside
+                    // Move original element and siblings into container
                     maskTransform.SetParent(containerRect, false);
 
-                    // Move all SUBSEQUENT siblings inside the masked container
                     var siblingsToMask = new List<Transform>();
                     for (int i = maskSiblingIndex + 1; i < parentTransform.childCount; i++)
                     {
@@ -407,12 +480,116 @@ namespace FigmaImporter.V2.Core
 
                     foreach (var sibling in siblingsToMask)
                     {
+                        EnsureUnpacked(sibling.gameObject);
                         sibling.SetParent(containerRect, true);
                     }
-
-                    Debug.Log($"[Figma v2.3.1] Applied Mask container for '{maskGo.name}' with {siblingsToMask.Count} children.");
                 }
             }
         }
+
+        private void CleanupOrphanedContainers(Transform root)
+        {
+            var allCandidates = root.GetComponentsInChildren<RectTransform>(true);
+            for (int i = allCandidates.Length - 1; i >= 0; i--)
+            {
+                var rt = allCandidates[i];
+                if (rt != null && rt.name.StartsWith("[Mask]") && rt.GetComponent<FigmaElement>() == null)
+                {
+                    bool anyManagedChild = false;
+                    foreach (Transform child in rt) if (child.GetComponent<FigmaElement>() != null) anyManagedChild = true;
+                    if (!anyManagedChild) UnityEngine.Object.DestroyImmediate(rt.gameObject);
+                }
+            }
+        }
+
+        private void DismantleAllMaskContainers(Transform root)
+        {
+            var all = root.GetComponentsInChildren<RectTransform>(true);
+            for (int i = all.Length - 1; i >= 0; i--)
+            {
+                var rt = all[i];
+                if (rt != null && rt.name.StartsWith("[Mask]"))
+                {
+                    Transform parent = rt.parent;
+                    if (parent != null)
+                    {
+                        int siblingIndex = rt.GetSiblingIndex();
+                        var children = new List<Transform>();
+                        foreach (Transform child in rt) children.Add(child);
+                        
+                        foreach (Transform child in children)
+                        {
+                            child.SetParent(parent, true);
+                            child.SetSiblingIndex(siblingIndex++);
+                        }
+                    }
+                    UnityEngine.Object.DestroyImmediate(rt.gameObject);
+                }
+            }
+        }
+
+        private void EnsureUnpacked(GameObject go)
+        {
+            if (go == null) return;
+            if (PrefabUtility.IsPartOfPrefabInstance(go))
+            {
+                var root = PrefabUtility.GetOutermostPrefabInstanceRoot(go);
+                if (root != null)
+                {
+                    PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+                }
+            }
+        }
+
+        private void ApplyCanvasScaler(Transform rootCanvas)
+        {
+            if (Settings == null || Settings.canvasScaleMode == FigmaImporterSettings.CanvasScaleMode.None) return;
+
+            var scaler = rootCanvas.GetComponent<CanvasScaler>();
+            if (scaler == null) return;
+
+            Undo.RecordObject(scaler, "Apply Figma Canvas Scaler");
+
+            switch (Settings.canvasScaleMode)
+            {
+                case FigmaImporterSettings.CanvasScaleMode.ConstantPixelSize:
+                    scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+                    break;
+                case FigmaImporterSettings.CanvasScaleMode.ScaleWithScreenSize:
+                    scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                    
+                    Vector2 refRes = Settings.referenceResolution;
+                    
+                    // Auto-detect resolution if settings are default (X=0 and Y=0)
+                    if (refRes.x <= 1 && refRes.y <= 1)
+                    {
+                        // Use the size of the first top node as the reference
+                        var rootRt = rootCanvas.GetComponent<RectTransform>();
+                        if (rootRt != null)
+                        {
+                            // We find the first figma element under root to get its size
+                            var firstChild = rootCanvas.GetComponentInChildren<FigmaElement>();
+                            if (firstChild != null)
+                            {
+                                refRes = new Vector2(firstChild.AbsoluteBox.width, firstChild.AbsoluteBox.height);
+                                Debug.Log($"[Figma v2.4.0] Auto-detected Reference Resolution from Frame: {refRes.x}x{refRes.y}");
+                            }
+                        }
+                    }
+                    
+                    // Final safety check to avoid division by zero in Unity
+                    if (refRes.x <= 1) refRes.x = 1080;
+                    if (refRes.y <= 1) refRes.y = 1920;
+
+                    scaler.referenceResolution = refRes;
+                    scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+                    scaler.matchWidthOrHeight = Settings.matchWidthOrHeight;
+                    break;
+            }
+            
+            EditorUtility.SetDirty(scaler);
+            Debug.Log($"[Figma v2.4.0] CanvasScaler updated to {Settings.canvasScaleMode}");
+        }
     }
+// [Figma-to-Unity] Stencil Mask Guard and Hierarchy Optimization v2.4.0.
 }

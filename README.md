@@ -1,4 +1,4 @@
-# 🌌 Figma to Unity Importer V2.3.1 (Stable & Hardening)
+# 🌌 Figma to Unity Importer v2.4.0 (Stencil Guard Edition)
 
 **Figma-to-Unity Pipeline** — профессиональный инструмент для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity uGUI. Плагин использует неразрушающую архитектуру **Smart Sync**, позволяя обновлять UI из Figma без потери ваших изменений (скриптов, анимаций) в Unity.
 
@@ -24,16 +24,16 @@
 
 ---
 
-## 🛠 Ключевые особенности v2.3.1 (Stable)
+## 🛠 Ключевые особенности v2.4.0 (Performance & Stability)
 
+- **Stencil Mask Guard**: Автоматический контроль вложенности масок (лимит 3 уровня). Предотвращает ошибки Unity "stencil mask depth > 8".
+- **Auto RectMask2D Fallback**: Автоматическое переключение на `RectMask2D` при превышении лимита глубины или для простых фигур.
+- **Aggressive Hierarchy Flattening**: Умный демонтаж технических контейнеров `[Mask]` при каждой синхронизации для поддержания чистоты иерархии.
+- **Global API First**: Плагин переключен на работу через Figma API по умолчанию для бесшовной интеграции.
 - **Soft-Delete Mode**: Объекты больше не удаляются физически, а выключаются и помечаются `FigmaOrphanedElement`.
 - **Auto Layout Support**: Полная трансляция Figma Auto Layout в Unity `Horizontal/Vertical Layout Group`.
-- **9-Slice Automation**: Авто-настройка границ спрайтов через суффикс `_9slice`.
-- **Parallel Image Sync**: Многопоточная загрузка изображений для максимальной скорости.
-- **Batch Image Sync**: Пакетная загрузка ссылок для предотвращения тайм-аутов API.
-- **Auto-Prefab Pipeline**: Автоматическое сохранение и обновление префабов.
 - **Non-Destructive Update**: Сохранение ваших скриптов и анимаций при синхронизации.
-- **Font Mapping**: Гибкая таблица шрифтов с блокирующей валидацией ошибок.
+- **Batch Image Sync**: Пакетная загрузка ссылок для предотвращения тайм-аутов API.
 
 ---
 

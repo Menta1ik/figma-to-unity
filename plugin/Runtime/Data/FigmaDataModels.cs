@@ -25,6 +25,13 @@ namespace FigmaImporter.V2.Data
     }
 
     [Serializable]
+    public class FigmaConstraints
+    {
+        public string horizontal; // "LEFT", "RIGHT", "CENTER", "LEFT_RIGHT", "SCALE"
+        public string vertical;   // "TOP", "BOTTOM", "CENTER", "TOP_BOTTOM", "SCALE"
+    }
+
+    [Serializable]
     public class FigmaNode
     {
         public string id;
@@ -36,6 +43,8 @@ namespace FigmaImporter.V2.Data
         public FigmaBoundingBox absoluteBoundingBox;
         public FigmaBoundingBox absoluteRenderBounds;
         
+        public FigmaConstraints constraints;
+
         public bool clipsContent;
         
         public string lastModified; 

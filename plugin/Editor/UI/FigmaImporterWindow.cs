@@ -35,7 +35,7 @@ namespace FigmaImporter.V2.UI
         [MenuItem("Figma Importer/Sync & Reskin Dashboard")]
         public static void ShowWindow()
         {
-            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.3.1");
+            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.4.0");
             window.minSize = new Vector2(350, 450);
         }
 
@@ -59,7 +59,7 @@ namespace FigmaImporter.V2.UI
                 EditorGUIUtility.labelWidth = 160f;
 
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.3.1", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.4.0", EditorStyles.boldLabel);
             
             // --- SECTION 1: CONNECTION ---
             EditorGUILayout.BeginVertical("box");
@@ -144,7 +144,37 @@ namespace FigmaImporter.V2.UI
             }
             EditorGUILayout.EndVertical();
 
-            // --- SECTION 4: UTILS ---
+            // --- SECTION 4: ADAPTIVE LAYOUT ---
+            EditorGUILayout.Space();
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("Step 4: Adaptive Layout (BETA)", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("Automatically map Figma Constraints to Unity anchors. Requires 'Root Canvas' to have a CanvasScaler.", MessageType.None);
+            
+            if (_settings != null)
+            {
+                EditorGUI.BeginChangeCheck();
+                bool enable = EditorGUILayout.Toggle("Enable Constraints", _settings.enableConstraintsTranslation);
+                FigmaImporterSettings.CanvasScaleMode mode = (FigmaImporterSettings.CanvasScaleMode)EditorGUILayout.EnumPopup("Canvas Scale Mode", _settings.canvasScaleMode);
+                Vector2 res = EditorGUILayout.Vector2Field("Reference Resolution", _settings.referenceResolution);
+                float match = EditorGUILayout.Slider("Match (Width <-> Height)", _settings.matchWidthOrHeight, 0, 1);
+                
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(_settings, "Update Adaptive Settings");
+                    _settings.enableConstraintsTranslation = enable;
+                    _settings.canvasScaleMode = mode;
+                    _settings.referenceResolution = res;
+                    _settings.matchWidthOrHeight = match;
+                    EditorUtility.SetDirty(_settings);
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("Assign 'Importer Settings' in Step 1 to configure adaptivity.", MessageType.Warning);
+            }
+            EditorGUILayout.EndVertical();
+
+            // --- SECTION 5: UTILS ---
             EditorGUILayout.Space();
             if (!_isProcessing)
             {
@@ -272,7 +302,7 @@ namespace FigmaImporter.V2.UI
                     string jsonPath = Path.Combine(Application.dataPath, "lobby_figma.json");
                     if (!File.Exists(jsonPath))
                     {
-                        Debug.LogError($"[Figma v2.3.1] Local file not found: {jsonPath}");
+                        Debug.LogError($"[Figma v2.4.0] Local file not found: {jsonPath}");
                         return;
                     }
                     jsonContent = File.ReadAllText(jsonPath);
@@ -310,7 +340,7 @@ namespace FigmaImporter.V2.UI
             {
                 Undo.DestroyObjectImmediate(_rootCanvas.GetChild(i).gameObject);
             }
-            Debug.Log("[Figma v2.3.1] Canvas cleared successfully!");
+            Debug.Log("[Figma v2.4.0] Canvas cleared successfully!");
         }
         private async void RunInteractiveTest()
         {

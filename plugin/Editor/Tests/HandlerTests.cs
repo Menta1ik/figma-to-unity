@@ -137,7 +137,8 @@ namespace FigmaImporter.V2.Tests
         {
             var go = new GameObject("Text");
             var element = go.AddComponent<FigmaElement>();
-            var context = new FigmaHandlerContext { GlobalFont = ScriptableObject.CreateInstance<TMP_FontAsset>() };
+            var fontAsset = ScriptableObject.CreateInstance<TMP_FontAsset>();
+            var context = new FigmaHandlerContext { GlobalFont = fontAsset };
             var node = new FigmaNode
             {
                 type = "TEXT",
@@ -156,7 +157,8 @@ namespace FigmaImporter.V2.Tests
         {
             var go = new GameObject("Text");
             var element = go.AddComponent<FigmaElement>();
-            var context = new FigmaHandlerContext { GlobalFont = ScriptableObject.CreateInstance<TMP_FontAsset>() };
+            var fontAsset = ScriptableObject.CreateInstance<TMP_FontAsset>();
+            var context = new FigmaHandlerContext { GlobalFont = fontAsset };
             var node = new FigmaNode
             {
                 type = "TEXT",

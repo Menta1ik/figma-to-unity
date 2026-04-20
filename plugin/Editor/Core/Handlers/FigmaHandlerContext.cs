@@ -6,7 +6,14 @@ namespace FigmaImporter.V2.Core.Handlers
 {
     public class FigmaHandlerContext
     {
-        public FigmaImporterSettings Settings { get; set; }
+        private FigmaImporterSettings _settings;
+        public FigmaImporterSettings Settings 
+        { 
+            get => _settings ?? (_settings = UnityEngine.ScriptableObject.CreateInstance<FigmaImporterSettings>());
+            set => _settings = value;
+        }
+        public FigmaNode ParentNode { get; set; }
+        public UnityEngine.Transform RootTransform { get; set; }
         public List<FigmaNode> ImageNodesToDownload { get; } = new List<FigmaNode>();
         
         // Font mapping for typography synchronization

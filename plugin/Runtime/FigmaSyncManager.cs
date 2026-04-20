@@ -15,7 +15,7 @@ namespace FigmaImporter.V2
         
         [Header("Sync Settings")]
         [Tooltip("Если включено, плагин будет искать локальный JSON файл вместо запроса к API.")]
-        public bool UseLocalJson = true;
+        public bool UseLocalJson = false;
         public string LocalJsonPath = "lobby_figma.json";
 
         [Header("Typography")]
