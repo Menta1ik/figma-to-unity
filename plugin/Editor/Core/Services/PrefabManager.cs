@@ -15,14 +15,15 @@ namespace FigmaImporter.V2.Core.Services
             _settings = settings;
         }
 
-        public void UpdateOrCreatePrefab(GameObject go) 
+        public void UpdateOrCreatePrefab(GameObject go, string customName = null) 
         {
             if (_settings == null || string.IsNullOrEmpty(_settings.basePrefabsPath)) return;
 
             string folderPath = Path.Combine("Assets", _settings.basePrefabsPath);
             if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
 
-            string prefabPath = Path.Combine(folderPath, go.name + ".prefab").Replace("\\", "/");
+            string fileName = !string.IsNullOrEmpty(customName) ? customName : go.name;
+            string prefabPath = Path.Combine(folderPath, fileName + ".prefab").Replace("\\", "/");
             
             bool success;
             PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction, out success);

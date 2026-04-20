@@ -83,6 +83,20 @@ namespace FigmaImporter.V2.Core
             FigmaFileResponse response = JsonConvert.DeserializeObject<FigmaFileResponse>(jsonContent);
             if (response == null) return;
 
+            string importTargetName = "Canvas";
+            if (response.nodes != null && response.nodes.Count > 0)
+            {
+                foreach (var node in response.nodes.Values)
+                {
+                    importTargetName = node.document.name;
+                    break;
+                }
+            }
+            else if (response.document != null)
+            {
+                importTargetName = response.document.name;
+            }
+
             _auditReport = new TransformAuditReport();
             _deferredMasks = new List<(FigmaNode, FigmaElement, int)>();
             _processedIds = new HashSet<string>();
@@ -193,7 +207,7 @@ namespace FigmaImporter.V2.Core
             
             if (Settings != null && !string.IsNullOrEmpty(Settings.basePrefabsPath))
             {
-                new PrefabManager(Settings).UpdateOrCreatePrefab(rootCanvas.gameObject);
+                new PrefabManager(Settings).UpdateOrCreatePrefab(rootCanvas.gameObject, importTargetName);
             }
         }
 
