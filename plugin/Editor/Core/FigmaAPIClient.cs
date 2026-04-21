@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
+using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Core
 {
@@ -17,7 +18,7 @@ namespace FigmaImporter.V2.Core
             _accessToken = accessToken?.Trim() ?? string.Empty;
             if (!string.IsNullOrEmpty(_accessToken))
             {
-                Debug.Log($"<b>[Figma Debug]</b> API Client (UnityWebRequest) initialized. Token length: {_accessToken.Length}");
+                FigmaLog.Verbose($"<b>[Figma Debug]</b> API Client (UnityWebRequest) initialized. Token length: {_accessToken.Length}");
             }
         }
 
@@ -31,7 +32,7 @@ namespace FigmaImporter.V2.Core
                 url += $"/nodes?ids={Uri.EscapeDataString(nodeId.Trim().Replace("-", ":"))}";
             }
 
-            Debug.Log($"<b>[Figma Debug]</b> Requesting URL: <color=white>{url}</color>");
+            FigmaLog.Verbose($"<b>[Figma Debug]</b> Requesting URL: <color=white>{url}</color>");
             return await ExecuteRequest(url, ct);
         }
 
@@ -63,7 +64,7 @@ namespace FigmaImporter.V2.Core
                 string url = $"https://api.figma.com/v1/images/{fileId.Trim()}?ids={Uri.EscapeDataString(idsJoined.Replace("-", ":"))}&format={format}";
                 if (format == "png") url += $"&scale={scale.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
 
-                Debug.Log($"<color=cyan>[Figma API]</color> Requesting image batch {i / batchSize + 1} ({currentBatchSize} nodes)...");
+                FigmaLog.Verbose($"<color=cyan>[Figma API]</color> Requesting image batch {i / batchSize + 1} ({currentBatchSize} nodes)...");
                 
                 string content = await ExecuteRequest(url, ct);
                 if (string.IsNullOrEmpty(content)) continue;
@@ -81,7 +82,7 @@ namespace FigmaImporter.V2.Core
                 }
                 catch (Exception e)
                 {
-                    if (!ct.IsCancellationRequested) Debug.LogError($"[Figma API] JSON Error in batch: {e.Message}");
+                    if (!ct.IsCancellationRequested) FigmaLog.Error($"[Figma API] JSON Error in batch: {e.Message}");
                 }
             }
 
@@ -107,7 +108,7 @@ namespace FigmaImporter.V2.Core
                         request.SetRequestHeader("X-Figma-Token", _accessToken);
                     }
                     request.SetRequestHeader("Accept", "application/json");
-                    request.SetRequestHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Unity/2.4.1");
+                    request.SetRequestHeader("User-Agent", $"FigmaImporter/2.5.0 Unity/{Application.unityVersion}");
 
                     var operation = request.SendWebRequest();
 
@@ -128,7 +129,7 @@ namespace FigmaImporter.V2.Core
 
                     if (request.responseCode == 429)
                     {
-                        Debug.LogWarning($"<color=orange>[Figma 429]</color> Rate limit. Waiting {delayMs / 1000f}s... (Attempt {retryCount + 1}/{maxRetries})");
+                        FigmaLog.Warning($"<color=orange>[Figma 429]</color> Rate limit. Waiting {delayMs / 1000f}s... (Attempt {retryCount + 1}/{maxRetries})");
                         await Task.Delay(delayMs, ct);
                         retryCount++;
                         delayMs *= 2;
@@ -141,12 +142,12 @@ namespace FigmaImporter.V2.Core
                     string errorContent = "No content";
                     try { if (request.downloadHandler != null) errorContent = request.downloadHandler.text; } catch {}
 
-                    Debug.LogError($"[Figma API Error] {request.responseCode}: {errorMsg}\nContent: {errorContent}");
+                    FigmaLog.Error($"[Figma API Error] {request.responseCode}: {errorMsg}\nContent: {errorContent}");
                     return null;
                 }
             }
 
-            Debug.LogError("[Figma API] Max retries reached.");
+            FigmaLog.Error("[Figma API] Max retries reached.");
             return null;
         }
 

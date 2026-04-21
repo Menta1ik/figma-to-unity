@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using FigmaImporter.V2.Data;
 using FigmaImporter.V2.Core.Validation;
+using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Core.Handlers
 {
@@ -56,7 +57,7 @@ namespace FigmaImporter.V2.Core.Handlers
                 rt.sizeDelta = new Vector2(boxWidth, boxHeight);
                 rt.anchoredPosition = Vector2.zero; 
                 
-                Debug.Log($"[Figma v2.4.1] Smart Centered Root Frame: '{node.name}' at Center (Global Figma: {boxX}, {boxY})");
+                FigmaLog.Verbose($"[Figma v2.5.0] Smart Centered Root Frame: '{node.name}' at Center (Global Figma: {boxX}, {boxY})");
                 return; 
             }
 

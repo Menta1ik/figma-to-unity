@@ -1,4 +1,5 @@
 using UnityEngine;
+using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Data
 {
@@ -9,6 +10,16 @@ namespace FigmaImporter.V2.Data
         [Tooltip("If true, Font Audit will scan the entire Figma file. If false, it will only scan the selected Node ID.")]
         [SerializeField] private bool auditEntireFile = false;
         public bool AuditEntireFile => auditEntireFile;
+
+        [Header("Logging")]
+        [Tooltip("Silent = no logs, Minimal = milestones only, Verbose = per-node details.")]
+        public FigmaLogLevel logLevel = FigmaLogLevel.Minimal;
+
+        [Header("Image Export")]
+        [Range(0.5f, 4f)]
+        [Tooltip("Scale factor for image export from Figma API (1 = original, 2 = 2x, etc.).")]
+        [SerializeField] private float _imageExportScale = 2f;
+        public float ImageExportScale => _imageExportScale;
 
         [Header("Asset Paths")]
         [Tooltip("Path relative to Assets/ folder where sprites will be saved.")]

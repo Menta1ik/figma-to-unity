@@ -7,14 +7,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using FigmaImporter.V2.Core;
 using FigmaImporter.V2.Data;
+using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.UI
 {
     public class FigmaImporterWindow : EditorWindow
     {
+        private const string AccessTokenSessionKey = "FigmaImporter_AccessToken";
+
         private string _fileId = "VTzGVHnsRpELqG3pYTFE3M";
-        private string _nodeId = ""; // NEW: Field for specific frame/node sync
-        private string _accessToken = "";
+        private string _nodeId = "";
+
+        private string _accessToken
+        {
+            get => SessionState.GetString(AccessTokenSessionKey, "");
+            set => SessionState.SetString(AccessTokenSessionKey, value);
+        }
         
         private bool _useLocalJson = false;
         private bool _downloadImages = true; // Image toggle
@@ -35,7 +43,7 @@ namespace FigmaImporter.V2.UI
         [MenuItem("Figma Importer/Sync & Reskin Dashboard")]
         public static void ShowWindow()
         {
-            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.4.1");
+            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.5.0");
             window.minSize = new Vector2(350, 450);
         }
 
@@ -59,7 +67,7 @@ namespace FigmaImporter.V2.UI
                 EditorGUIUtility.labelWidth = 160f;
 
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.4.1", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.5.0", EditorStyles.boldLabel);
             
             // --- SECTION 1: CONNECTION ---
             EditorGUILayout.BeginVertical("box");
@@ -79,6 +87,19 @@ namespace FigmaImporter.V2.UI
             
             _accessToken = EditorGUILayout.PasswordField("Access Token (PAT)", _accessToken);
             _settings = (FigmaImporterSettings)EditorGUILayout.ObjectField("Importer Settings", _settings, typeof(FigmaImporterSettings), false);
+
+            if (_settings != null)
+            {
+                EditorGUI.BeginChangeCheck();
+                FigmaLogLevel newLogLevel = (FigmaLogLevel)EditorGUILayout.EnumPopup("Log Level", _settings.logLevel);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(_settings, "Change Log Level");
+                    _settings.logLevel = newLogLevel;
+                    EditorUtility.SetDirty(_settings);
+                    FigmaLog.SetLevel(newLogLevel);
+                }
+            }
             EditorGUILayout.EndVertical();
 
             // --- SECTION 2: RESOURCES ---
@@ -86,7 +107,7 @@ namespace FigmaImporter.V2.UI
             // Help link
             if (GUILayout.Button("📖 Open Developer Manual (Documentation)"))
             {
-                Debug.Log("[Figma Importer] Documentation is located in 'Packages/com.figmaimporter.v2/docs/' folder.");
+                FigmaLog.Info("[Figma Importer] Documentation is located in 'Packages/com.figmaimporter.v2/docs/' folder.");
             }
 
             EditorGUILayout.BeginVertical("box");
@@ -100,7 +121,7 @@ namespace FigmaImporter.V2.UI
             if (GUILayout.Button("Font Audit")) RunFontAudit();
             if (GUILayout.Button("Clear Image Cache")) 
             {
-                 Debug.Log("[FigmaImporter] Image cache logic is internal to Parser.");
+                 FigmaLog.Info("[FigmaImporter] Image cache logic is internal to Parser.");
             }
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndVertical();
@@ -123,6 +144,19 @@ namespace FigmaImporter.V2.UI
             _downloadImages = EditorGUILayout.Toggle("Sync Images", _downloadImages);
             _forceUpdate = EditorGUILayout.Toggle("Force Update", _forceUpdate);
             EditorGUILayout.EndHorizontal();
+
+            if (_settings != null)
+            {
+                EditorGUI.BeginChangeCheck();
+                float newScale = EditorGUILayout.Slider("Image Export Scale", _settings.ImageExportScale, 0.5f, 4f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(_settings, "Change Image Export Scale");
+                    var so = new UnityEditor.SerializedObject(_settings);
+                    so.FindProperty("_imageExportScale").floatValue = newScale;
+                    so.ApplyModifiedProperties();
+                }
+            }
 
             if (_isProcessing)
             {
@@ -194,6 +228,9 @@ namespace FigmaImporter.V2.UI
                 if (_devMode) DrawDevSection();
             }
 
+            EditorGUILayout.Space(20);
+            EditorGUILayout.LabelField($"v2.5.0 Build Date: {DateTime.Now:yyyy-MM-dd HH:mm}", EditorStyles.miniLabel);
+
             EditorGUILayout.EndScrollView();
             }
             catch (Exception)
@@ -207,7 +244,7 @@ namespace FigmaImporter.V2.UI
         {
             if (string.IsNullOrEmpty(_accessToken) || string.IsNullOrEmpty(_fileId))
             {
-                Debug.LogError("[FigmaImporter] Please provide Token and File ID first.");
+                FigmaLog.Error("[FigmaImporter] Please provide Token and File ID first.");
                 return;
             }
 
@@ -219,8 +256,8 @@ namespace FigmaImporter.V2.UI
                 parser.Settings = _settings;
                 await parser.RunFontAudit(_nodeId, _cts.Token);
             }
-            catch (OperationCanceledException) { Debug.LogWarning("[FigmaImporter] Font Audit cancelled."); }
-            catch (System.Exception e) { Debug.LogError($"[FigmaImporter] Audit Error: {e.Message}"); }
+            catch (OperationCanceledException) { FigmaLog.Warning("[FigmaImporter] Font Audit cancelled."); }
+            catch (System.Exception e) { FigmaLog.Error($"[FigmaImporter] Audit Error: {e.Message}"); }
             finally { EndOperation(); }
         }
 
@@ -256,7 +293,7 @@ namespace FigmaImporter.V2.UI
             {
                 if (_reskinTarget == null || string.IsNullOrEmpty(_reskinNodeId))
                 {
-                    Debug.LogError("[Reskin] Please assign a Target Object and a valid Figma Node ID.");
+                    FigmaLog.Error("[Reskin] Please assign a Target Object and a valid Figma Node ID.");
                     return;
                 }
                 RunReskinAsync();
@@ -302,7 +339,7 @@ namespace FigmaImporter.V2.UI
                     string jsonPath = Path.Combine(Application.dataPath, "lobby_figma.json");
                     if (!File.Exists(jsonPath))
                     {
-                        Debug.LogError($"[Figma v2.4.1] Local file not found: {jsonPath}");
+                        FigmaLog.Error($"[Figma v2.5.0] Local file not found: {jsonPath}");
                         return;
                     }
                     jsonContent = File.ReadAllText(jsonPath);
@@ -322,8 +359,8 @@ namespace FigmaImporter.V2.UI
                     EditorUtility.DisplayProgressBar("Syncing", $"Processing node {current}/{total}: {nodeName}", progress);
                 }, _cts.Token);
             }
-            catch (OperationCanceledException) { Debug.LogWarning("[FigmaImporter] Sync operation cancelled."); }
-            catch (System.Exception e) { Debug.LogError($"[Figma API Error] {e.Message}"); }
+            catch (OperationCanceledException) { FigmaLog.Warning("[FigmaImporter] Sync operation cancelled."); }
+            catch (System.Exception e) { FigmaLog.Error($"[Figma API Error] {e.Message}"); }
             finally
             {
                 EditorUtility.ClearProgressBar();
@@ -340,20 +377,20 @@ namespace FigmaImporter.V2.UI
             {
                 Undo.DestroyObjectImmediate(_rootCanvas.GetChild(i).gameObject);
             }
-            Debug.Log("[Figma v2.4.1] Canvas cleared successfully!");
+            FigmaLog.Info("[Figma v2.5.0] Canvas cleared successfully!");
         }
         private async void RunInteractiveTest()
         {
             string jsonPath = Path.Combine(Application.dataPath, "test_interactive.json");
             if (!File.Exists(jsonPath))
             {
-                Debug.LogError("[Dev] test_interactive.json not found!");
+                FigmaLog.Error("[Dev] test_interactive.json not found!");
                 return;
             }
 
             if (_rootCanvas == null || _settings == null)
             {
-                Debug.LogError("[Dev] Setup Root Canvas and Settings first!");
+                FigmaLog.Error("[Dev] Setup Root Canvas and Settings first!");
                 return;
             }
 
@@ -365,14 +402,14 @@ namespace FigmaImporter.V2.UI
             };
 
             await parser.ProcessFileAsync(jsonContent, _rootCanvas);
-            Debug.Log("<color=cyan>[Dev] Test Import Finished!</color>");
+            FigmaLog.Info("<color=cyan>[Dev] Test Import Finished!</color>");
         }
 
         private async void RunReskinAsync()
         {
             if (_settings == null || string.IsNullOrEmpty(_accessToken) || string.IsNullOrEmpty(_fileId))
             {
-                Debug.LogError("[Reskin] Setup Token, FileID and Settings first!");
+                FigmaLog.Error("[Reskin] Setup Token, FileID and Settings first!");
                 return;
             }
 

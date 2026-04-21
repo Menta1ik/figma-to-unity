@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEditor;
+using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Core
 {
@@ -66,7 +67,7 @@ namespace FigmaImporter.V2.Core
                 }
                 else
                 {
-                    Debug.LogError($"[Figma v2.4.1] TextureImporter is NULL for path {assetPath}");
+                    FigmaLog.Error($"[Figma v2.5.0] TextureImporter is NULL for path {assetPath}");
                 }
             }
 

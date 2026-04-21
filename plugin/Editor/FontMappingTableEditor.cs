@@ -116,7 +116,7 @@ public class FontMappingTableEditor : Editor
         var table = (FontMappingTable)target;
         string[] guids = AssetDatabase.FindAssets("t:TMP_FontAsset");
         
-        Debug.Log($"[FigmaImporter] Starting scan. Found {guids.Length} potential TMP assets in database.");
+        FigmaLog.Info($"[FigmaImporter] Starting scan. Found {guids.Length} potential TMP assets in database.");
         
         int addedCount = 0;
         int updatedCount = 0;
@@ -165,7 +165,7 @@ public class FontMappingTableEditor : Editor
 
         EditorUtility.SetDirty(table);
         AssetDatabase.SaveAssets();
-        Debug.Log($"[FigmaImporter] Scan completed. Added new: {addedCount}, Updated existing: {updatedCount}.");
+        FigmaLog.Info($"[FigmaImporter] Scan completed. Added new: {addedCount}, Updated existing: {updatedCount}.");
     }
 
     private int GuessWeight(string name)
