@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using FigmaImporter.V2.Data;
+using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Core.Handlers
 {
@@ -113,7 +114,7 @@ namespace FigmaImporter.V2.Core.Handlers
                                (hasCornerRadius ? "Has Corner Radius" :
                                (isRectangle && hasGradientFill ? "Gradient Rectangle" : "ICON Candidate"))));
 
-                Debug.Log($"[FigmaImporter] Node '{node.name}' ({type}) queued for download. Reason: {reason}");
+                FigmaLog.Verbose($"[FigmaImporter] Node '{node.name}' ({type}) queued for download. Reason: {reason}");
                 return;
             }
 

@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using UnityEditor;
 using FigmaImporter.V2.Data;
 using FigmaImporter.V2.Core.Handlers;
+using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Core.Services
 {
@@ -37,7 +38,8 @@ namespace FigmaImporter.V2.Core.Services
             var apiClient = new FigmaAPIClient(_accessToken);
             var nodeIds = context.ImageNodesToDownload.Select(n => n.id).ToList();
             
-            var links = await apiClient.GetImageLinksAsync(_fileId, nodeIds, 3f, "png", ct);
+            float scale = _settings != null ? _settings.ImageExportScale : 2f;
+            var links = await apiClient.GetImageLinksAsync(_fileId, nodeIds, scale, "png", ct);
             if (links == null) return;
 
             string spriteFolder = _settings != null ? _settings.baseSpritesPath : "UI/Generated/Sprites";
@@ -81,13 +83,13 @@ namespace FigmaImporter.V2.Core.Services
                             {
                                 Apply9SliceBorder(sprite, relativePath);
                                 img.type = Image.Type.Sliced;
-                                Debug.Log($"[FigmaImporter] Applied 9-Slice to '{node.name}'");
+                                FigmaLog.Verbose($"[FigmaImporter] Applied 9-Slice to '{node.name}'");
                             }
                         }
                     }
                 }
 
-                Debug.Log($"<color=cyan>[FigmaImporter] Downloaded {completed}/{totalDownloads} images.</color>");
+                FigmaLog.Info($"<color=cyan>[FigmaImporter] Downloaded {completed}/{totalDownloads} images.</color>");
             }
         }
 
@@ -102,7 +104,7 @@ namespace FigmaImporter.V2.Core.Services
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[FigmaImporter] Failed to download image for '{node.name}': {e.Message}");
+                FigmaLog.Warning($"[FigmaImporter] Failed to download image for '{node.name}': {e.Message}");
                 return (node, null);
             }
             finally

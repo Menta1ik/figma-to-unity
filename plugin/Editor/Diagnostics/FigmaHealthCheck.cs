@@ -24,7 +24,7 @@ namespace FigmaImporter.V2.Editor.Diagnostics
             public string Details;
         }
 
-        [MenuItem("Figma Importer/Diagnostics/Health Check (v2.4.1)")]
+        [MenuItem("Figma Importer/Diagnostics/Health Check (v2.5.2)")]
         public static void ShowWindow()
         {
             GetWindow<FigmaHealthCheck>("Figma Health Check");
@@ -47,7 +47,7 @@ namespace FigmaImporter.V2.Editor.Diagnostics
             try 
             {
                 EditorGUILayout.BeginVertical();
-                GUILayout.Label("Figma-to-Unity Pipeline Audit (v2.4.1)", EditorStyles.boldLabel);
+                GUILayout.Label("Figma-to-Unity Pipeline Audit (v2.5.2)", EditorStyles.boldLabel);
                 
                 if (GUILayout.Button("Run Full Audit", GUILayout.Height(30)))
                 {

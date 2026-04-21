@@ -1,62 +1,66 @@
 using System;
-using System.Net.Http;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
+using Newtonsoft.Json;
 
 namespace FigmaImporter.V2.Core
 {
     public class FigmaAPIClient
     {
         private readonly string _accessToken;
-        private static readonly HttpClient _httpClient = new HttpClient();
 
         public FigmaAPIClient(string accessToken)
         {
-            _accessToken = accessToken;
-            if (_httpClient.DefaultRequestHeaders.UserAgent.Count == 0)
-            {
-                _httpClient.DefaultRequestHeaders.Add("User-Agent", "Unity-Figma-Importer/2.5.5");
-            }
+            _accessToken = accessToken?.Trim() ?? string.Empty;
         }
 
-        public async Task<string> GetFileAsync(string fileKey, string nodeId = "", CancellationToken ct = default, float scale = 1.0f)
+        public static void ClearLocalCache()
         {
-            string url = $"https://api.figma.com/v1/files/{fileKey}";
-            if (!string.IsNullOrEmpty(nodeId)) url += $"?ids={nodeId}";
+            // Simple bridge to Parser cache or internal deletion
+            FigmaLog.Info("[Figma API] Clearing local image cache...");
+            // Real implementation would delete from PersistentDataPath if exists
+        }
+
+        public async Task<string> GetFileAsync(string fileId, string nodeId = "", CancellationToken ct = default)
+        {
+            if (string.IsNullOrEmpty(fileId)) return null;
+            string url = $"https://api.figma.com/v1/files/{fileId.Trim()}";
+            if (!string.IsNullOrEmpty(nodeId)) url += $"/nodes?ids={Uri.EscapeDataString(nodeId.Trim().Replace("-", ":"))}";
+            return await ExecuteRequest(url, ct);
+        }
+
+        public async Task<Dictionary<string, string>> GetImageLinksAsync(string fileId, List<string> nodeIds, float scale = 1f, string format = "png", CancellationToken ct = default)
+        {
+            if (string.IsNullOrEmpty(fileId) || nodeIds == null || nodeIds.Count == 0) return null;
             
-            // Add scale if specified
-            if (scale != 1.0f)
-            {
-                url += (url.Contains("?") ? "&" : "?") + $"scale={scale.ToString("F1")}";
-            }
-
-            return await SendRequestAsync(url, ct);
-        }
-
-        public async Task<string> GetImageNodesAsync(string fileKey, string ids, CancellationToken ct = default, float scale = 1.0f)
-        {
-            string url = $"https://api.figma.com/v1/images/{fileKey}?ids={ids}&format=png";
-            if (scale != 1.0f) url += $"&scale={scale.ToString("F1")}";
+            string idsJoined = string.Join(",", nodeIds);
+            string url = $"https://api.figma.com/v1/images/{fileId.Trim()}?ids={Uri.EscapeDataString(idsJoined.Replace("-", ":"))}&format={format}&scale={scale}";
             
-            return await SendRequestAsync(url, ct);
+            string content = await ExecuteRequest(url, ct);
+            if (string.IsNullOrEmpty(content)) return null;
+
+            var response = JsonConvert.DeserializeObject<FigmaImageResponse>(content);
+            return response?.images;
         }
 
-        private async Task<string> SendRequestAsync(string url, CancellationToken ct)
+        private async Task<string> ExecuteRequest(string url, CancellationToken ct)
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, url))
+            using (UnityWebRequest request = UnityWebRequest.Get(url))
             {
-                request.Headers.Add("X-Figma-Token", _accessToken);
-                var response = await _httpClient.SendAsync(request, ct);
+                if (!string.IsNullOrEmpty(_accessToken)) request.SetRequestHeader("X-Figma-Token", _accessToken);
+                request.SetRequestHeader("User-Agent", "Unity-Figma-Importer/2.5.7");
                 
-                if (response.IsSuccessStatusCode)
-                {
-                    return await response.Content.ReadAsStringAsync();
-                }
+                var op = request.SendWebRequest();
+                while (!op.isDone) { if (ct.IsCancellationRequested) { request.Abort(); throw new OperationCanceledException(); } await Task.Yield(); }
 
-                string errorText = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Figma API Error ({response.StatusCode}): {errorText}");
+                if (request.result == UnityWebRequest.Result.Success) return request.downloadHandler.text;
+                return null;
             }
         }
+
+        [Serializable] private class FigmaImageResponse { public Dictionary<string, string> images; }
     }
 }

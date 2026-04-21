@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using FigmaImporter.V2.Data;
 using FigmaImporter.V2.Runtime;
+using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Core.Services
 {
@@ -28,8 +29,8 @@ namespace FigmaImporter.V2.Core.Services
             bool success;
             PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction, out success);
             
-            if (success) Debug.Log($"<color=green>[Figma v2.4.1] Prefab saved and connected: {prefabPath}</color>");
-            else Debug.LogError($"[Figma v2.4.1] Failed to save prefab at {prefabPath}");
+            if (success) FigmaLog.Info($"<color=green>[Figma v2.5.2] Prefab saved and connected: {prefabPath}</color>");
+            else FigmaLog.Error($"[Figma v2.5.2] Failed to save prefab at {prefabPath}");
         }
     }
 }

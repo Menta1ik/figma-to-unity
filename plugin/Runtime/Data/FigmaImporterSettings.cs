@@ -2,29 +2,50 @@ using UnityEngine;
 
 namespace FigmaImporter.V2.Data
 {
+    public enum FigmaLogLevel { Silent, Minimal, Verbose }
+
     [CreateAssetMenu(fileName = "FigmaImporterSettings", menuName = "Figma Importer/Settings", order = 1)]
     public class FigmaImporterSettings : ScriptableObject
     {
-        [Header("Naming Conventions")]
-        public string framePrefix = "Frame_";
-        public string textPrefix = "Text_";
-        public string imagePrefix = "Image_";
-        public string vectorPrefix = "Vector_";
-
-        [Header("Hierarchy Options")]
-        public bool createPrefabsForTopFrames = false;
-        public bool useCompactHierarchy = true;
-
-        [Header("Image Options")]
-        public bool exportAssetsAsSprites = true;
-        [Range(0.5f, 4f)]
-        public float imageExportScale = 1.0f;
+        [Header("Optimization & Audit")]
+        public bool auditEntireFile = false;
+        public bool AuditEntireFile => auditEntireFile;
 
         [Header("Logging")]
-        [SerializeField]
         public FigmaLogLevel logLevel = FigmaLogLevel.Minimal;
 
-        [Header("Scene Management")]
-        public bool autoSaveOnSync = true;
+        [Header("Image Export")]
+        [Range(0.5f, 4f)]
+        [SerializeField] private float _imageExportScale = 2f;
+        public float ImageExportScale => _imageExportScale;
+
+        [Header("Asset Paths")]
+        public string baseSpritesPath = "UI/Generated/Sprites";
+        public string basePrefabsPath = "UI/Generated/Prefabs";
+
+        [Header("UI Interaction")]
+        public bool disableRaycastByDefault = true;
+
+        [Header("Non-Destructive Policy")]
+        public bool preserveUnityNames = true;
+        public bool preserveManualComponents = true;
+        
+        [Header("Interactive Markers")]
+        public string buttonMarker = "[Btn]";
+        public string inputMarker = "[Input]";
+        public string scrollMarker = "[Scroll]";
+        public string toggleMarker = "[Toggle]";
+
+        [Header("Adaptive Layout")]
+        public bool enableConstraintsTranslation = false;
+
+        public enum CanvasScaleMode { None, ConstantPixelSize, ScaleWithScreenSize }
+        public CanvasScaleMode canvasScaleMode = CanvasScaleMode.None;
+        public Vector2 referenceResolution = new Vector2(1920, 1080);
+        public float matchWidthOrHeight = 0.5f;
+
+        [Header("Legacy Compatibility")]
+        public bool useCompactHierarchy = true;
+        public bool createPrefabsForTopFrames = false;
     }
 }
