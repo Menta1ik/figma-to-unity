@@ -108,7 +108,7 @@ namespace FigmaImporter.V2.Core
                         request.SetRequestHeader("X-Figma-Token", _accessToken);
                     }
                     request.SetRequestHeader("Accept", "application/json");
-                    request.SetRequestHeader("User-Agent", $"FigmaImporter/2.5.1 Unity/{Application.unityVersion}");
+                    request.SetRequestHeader("User-Agent", $"FigmaImporter/2.5.2 Unity/{Application.unityVersion}");
 
                     var operation = request.SendWebRequest();
 
