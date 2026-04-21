@@ -13,7 +13,7 @@ namespace FigmaImporter.V2.Data
 
         [Header("Logging")]
         [Tooltip("Silent = no logs, Minimal = milestones only, Verbose = per-node details.")]
-        public FigmaLogLevel logLevel = FigmaLogLevel.Minimal;
+        [SerializeField] public FigmaLogLevel logLevel = FigmaLogLevel.Minimal;
 
         [Header("Image Export")]
         [Range(0.5f, 4f)]

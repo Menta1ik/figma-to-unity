@@ -1,11 +1,11 @@
-# 🚀 Figma Importer v2.5.0 (UPM)
+# 🚀 Figma Importer v2.5.1 (UPM)
 
 [![Unity](https://img.shields.io/badge/Unity-2021.3%2B-blue.svg)](https://unity.com/) 
 [![Figma](https://img.shields.io/badge/Figma-API%20v1-orange.svg)](https://www.figma.com/developers/api)
 
 Мощный инструмент для профессионального импорта UI из Figma в Unity с поддержкой **Smart Sync**, автоматизацией префабов и неразрушающим обновлением.
 
-### New in v2.5.0 (Quality & Control Update)
+### New in v2.5.1 (Quality & Control Update)
 - **Log Levels**: Control console output (Silent, Minimal, Verbose).
 - **Image Export Scale**: Adjustable scale factor (0.5x - 4x) for high-fidelity assets.
 - **Session Security**: Personal Access Tokens (PAT) are now stored only in memory (`SessionState`).
@@ -21,7 +21,7 @@ This package is designed for the **Unity Package Manager (UPM)**.
 1. Open your Unity project.
 2. Go to `Window -> Package Manager`.
 3. Click `+` -> **"Add package from git URL..."**.
-4. Paste: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.5.0`
+4. Paste: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.5.1`
 
 ### Option B: Local Disk
 Select the `package.json` file inside the `plugin` folder.
