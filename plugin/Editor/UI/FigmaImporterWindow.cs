@@ -43,13 +43,13 @@ namespace FigmaImporter.V2.UI
         [MenuItem("Figma Importer/Sync & Reskin Dashboard")]
         public static void ShowWindow()
         {
-            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.5.2");
+            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.5.3");
             window.minSize = new Vector2(350, 450);
         }
 
         private void OnEnable()
         {
-            titleContent = new GUIContent("Figma v2.5.2");
+            titleContent = new GUIContent("Figma v2.5.3");
         }
 
         private void OnGUI()
@@ -72,7 +72,7 @@ namespace FigmaImporter.V2.UI
                 EditorGUIUtility.labelWidth = 160f;
 
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.5.2", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.5.3", EditorStyles.boldLabel);
             
             // --- SECTION 1: CONNECTION ---
             EditorGUILayout.BeginVertical("box");
