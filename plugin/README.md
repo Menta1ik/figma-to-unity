@@ -1,15 +1,6 @@
-# 🚀 Figma Importer v2.5.2 (UPM)
-
-[![Unity](https://img.shields.io/badge/Unity-2021.3%2B-blue.svg)](https://unity.com/) 
-[![Figma](https://img.shields.io/badge/Figma-API%20v1-orange.svg)](https://www.figma.com/developers/api)
+# Figma Importer v2.6.0 (UPM)
 
 Мощный инструмент для профессионального импорта UI из Figma в Unity с поддержкой **Smart Sync**, автоматизацией префабов и неразрушающим обновлением.
-
-### New in v2.5.2 (Quality & Control Update)
-- **Log Levels**: Control console output (Silent, Minimal, Verbose).
-- **Image Export Scale**: Adjustable scale factor (0.5x - 4x) for high-fidelity assets.
-- **Session Security**: Personal Access Tokens (PAT) are now stored only in memory (`SessionState`).
-- **Build Tagging**: Window footer displays build date for easier troubleshooting.
 
 ---
 
@@ -21,28 +12,67 @@ This package is designed for the **Unity Package Manager (UPM)**.
 1. Open your Unity project.
 2. Go to `Window -> Package Manager`.
 3. Click `+` -> **"Add package from git URL..."**.
-4. Paste: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.5.2`
+4. Paste: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.6.0`
 
 ### Option B: Local Disk
 Select the `package.json` file inside the `plugin` folder.
 
 ---
 
-## 🛠 Features
+## 🚀 Quick Start (Step-by-Step)
 
-- **Smart Sync**: Updates only what changed. Manually added components or modified names in Unity are preserved.
-- **Auto Layout**: Maps Figma's Auto Layout directly to Unity `Vertical/HorizontalLayoutGroup`.
-- **9-Slice Support**: Automatically detects and applies 9-slice borders based on naming conventions.
-- **Constraints Translation**: (Beta) Maps Figma constraints to Unity anchors and offsets for responsive design.
-- **Stencil Guard**: Automatically prevents "depth > 8" errors by flattening hierarchy or switching to RectMask2D.
+1.  **Open Dashboard**: Go to `Window -> Figma Importer -> Dashboard`.
+2.  **Configure API**:
+    *   Paste your **Figma File URL** or **File ID**.
+    *   Paste your **Personal Access Token** (PAT).
+3.  **Setup Resources**:
+    *   Assign `FigmaImporterSettings` and `FontMappingTable`.
+    *   Drag your target **Canvas** from hierarchy into the **Root Canvas** field.
+4.  **Run Sync**: 
+    *   Press the green **RUN FULL SYNC** button.
+5.  **Get Prefab**: The system automatically creates/updates a prefab in `Assets/UI/Generated/Prefabs/`.
+
+---
+
+## 🛠 New in v2.6.0
+*   **Metadata Unblock**: Исправлен .gitignore, блокировавший загрузку .meta файлов.
+*   **Logging System (FigmaLog)**: Централизованное управление логами. Три уровня: `Silent`, `Minimal`, `Verbose`. Настраивается в `FigmaImporterSettings`.
+*   **Configurable Image Scale**: Слайдер `Image Export Scale` (0.5–4x, default 2x) в настройках и в окне импортера.
+*   **Fill Container (layoutGrow)**: Элементы с "Fill Container" в Figma Auto Layout автоматически получают `LayoutElement.flexibleWidth/Height` в Unity.
+*   **Token Security**: Access Token хранится в `SessionState` — безопасно переживает перезагрузку домена.
+
+### Previous (v2.5.0)
+*   Service-Oriented Architecture, Icon Detection Cache, Deep Diagnostics, Unit Tests.
+*   Soft-Delete, Auto Layout, Parallel Loading, Batch Processing, Stencil Guard.
 
 ---
 
-## 📖 Documentation
-
-Check the `plugin/docs` folder for detailed guides:
-- [Developer Manual (Russian)](docs/Developer/DEVELOPER_MANUAL.md)
-- [Architecture Overview](docs/Developer/DEV_CONCEPTS.md)
+## 📚 Documentation
+*   [Developer Manual](docs/Developer/DEVELOPER_MANUAL.md) — Полное руководство по настройке и API.
+*   [Technical Concepts](docs/Developer/DEV_CONCEPTS.md) — Описание архитектуры и системы "паспортов".
+*   [Designer Guide](docs/Developer/DEV_DESIGNER_GUIDE.md) — Инструкции для дизайнеров (маркеры, нейминг).
+*   [Knowledge Base](docs/index.md) — Основной индекс документации.
 
 ---
-**BrainySoftware OU © 2026**
+
+## 🕹 Руководство по интерфейсу
+
+### 1. Connection & Config
+*   **Figma URL / File ID:** Ссылка на макет.
+*   **Single Node ID:** Обновление только одного конкретного экрана.
+*   **Access Token (PAT):** Ваш ключ API.
+
+### 2. Resources & Target
+*   **Font Mapping:** Таблица шрифтов TextMeshPro.
+*   **Root Canvas:** Место сборки в сцене.
+
+### 3. Sync & Generate
+*   **Smart Sync**: Обновляет только то, что изменилось.
+*   **Force Update**: Принудительный полный перебор всех элементов.
+
+---
+
+## 📜 Лицензия
+
+© 2026 **BrainySoftware OU**. Все права защищены.
+Разработано для внутреннего использования.

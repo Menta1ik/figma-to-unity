@@ -1,19 +1,12 @@
-# Ignore everything by default
+# Ignore everything outside the plugin folder for this branch
 /*
 
-# Allow the plugin folder and .gitignore
+# Allow ONLY these root files
 !/plugin/
-/plugin/docs/
-!/plugin/docs/Developer/
-!/plugin/docs/Developer.meta
-!/plugin/docs.meta
 !.gitignore
-!/README.md
+!README.md
 
-# --- Completely ignore Samples (internal testing project) ---
-/plugin/Samples~/
-
-# --- Unity General patterns ---
+# --- Unity General patterns (apply to plugin subfolder) ---
 **/[Ll]ibrary/
 **/[Tt]emp/
 **/[Oo]bj/

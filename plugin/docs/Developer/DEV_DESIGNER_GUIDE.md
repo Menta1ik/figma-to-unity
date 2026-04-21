@@ -1,6 +1,6 @@
-# Figma to Unity Importer | Designer Guide v2.5.2
+# Figma to Unity Importer | Designer Guide v2.6.0
 
-Данный инструмент предназначен для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity с использованием системы uGUI. Версия 2.5.2 фокусируется на системе логирования, гибком масштабе изображений и поддержке Fill Container.
+Данный инструмент предназначен для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity с использованием системы uGUI. Версия 2.6.0 фокусируется на исправлении метаданных и унификации версий.
 
 ---
 
@@ -8,7 +8,7 @@
 Плагин теперь устанавливается через **Unity Package Manager** (UPM):
 1. **Window -> Package Manager**.
 2. **+ -> Add package from git URL...**.
-3. Вставьте: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.5.2`
+3. Вставьте: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.6.0`
 
 ---
 

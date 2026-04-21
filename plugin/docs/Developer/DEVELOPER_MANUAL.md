@@ -1,4 +1,4 @@
-# 📖 Полное руководство разработчика: Figma Importer v2.5.2
+# 📖 Полное руководство разработчика: Figma Importer v2.6.0
 
 Данное руководство содержит исчерпывающую информацию по настройке и эксплуатации системы импорта UI из Figma в Unity uGUI. 
 
@@ -15,7 +15,7 @@
 ### Шаги по установке через Git:
 1.  Откройте **Window -> Package Manager**.
 2.  Нажмите кнопку **+** (Add) и выберите **Add package from git URL...**.
-3.  Вставьте строку: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.5.2`
+3.  Вставьте строку: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.6.0`
 4.  Нажмите **Add**. Unity загрузит плагин и автоматически добавит зависимости (Newtonsoft JSON).
 
 ---
