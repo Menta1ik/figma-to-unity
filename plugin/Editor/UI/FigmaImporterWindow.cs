@@ -47,6 +47,11 @@ namespace FigmaImporter.V2.UI
             window.minSize = new Vector2(350, 450);
         }
 
+        private void OnEnable()
+        {
+            titleContent = new GUIContent("Figma v2.5.1");
+        }
+
         private void OnGUI()
         {
             // NEW ULTIMATE GUARD: EditorStyles may throw NullReferenceException during domain reload if Unity is unstable.
