@@ -1,4 +1,4 @@
-# 🧠 Технические концепции: Figma Importer v2.4.1 (Deep Constraints)
+# 🧠 Технические концепции: Figma Importer v2.5.0
 
 Этот документ объясняет архитектурные принципы и ключевые механизмы, которые делают Figma Importer стабильным и производительным инструментом для Unity.
 
@@ -100,5 +100,45 @@ Figma API имеет лимиты на количество запросов и 
 3.  **Auto-Fallback**: Простые прямоугольные маски или маски с высокой вложенностью автоматически заменяются на `RectMask2D`, что экономит Draw Calls и предотвращает ошибку `stencil mask depth > 8`.
 
 ---
+
+## 9. Система логирования (FigmaLog) — v2.5.0
+
+До v2.5.0 все хендлеры выводили `Debug.Log` на каждую ноду. При 500+ элементах консоль становилась бесполезной.
+
+### Архитектура:
+*   **FigmaLogLevel** (enum): `Silent`, `Minimal`, `Verbose` — определяется в `FigmaImporterSettings.logLevel`.
+*   **FigmaLog** (static class, `Runtime/FigmaLog.cs`): Централизованный фасад с методами `Info()`, `Verbose()`, `Warning()`, `Error()`.
+*   Уровень устанавливается автоматически при вызове `FigmaParser.RunSync()` / `ProcessFileAsync()`.
+
+### Поведение по уровням:
+
+| Уровень | Info | Verbose | Warning | Error |
+| :--- | :--- | :--- | :--- | :--- |
+| **Silent** | — | — | — | Всегда |
+| **Minimal** | Да | — | Да | Всегда |
+| **Verbose** | Да | Да | Да | Всегда |
+
+*   `Error` выводится всегда, независимо от уровня — критические проблемы нельзя замалчивать.
+*   `Verbose` — детали по каждой ноде (какой layout group назначен, какой шрифт заменён, какой тип маски выбран).
+*   `Info` — итоги: количество загруженных картинок, результат сохранения префаба, обнаруженное разрешение.
+
+---
+
+## 10. Fill Container — layoutGrow (v2.5.0)
+
+В Figma Auto Layout дочерний элемент с `layoutGrow = 1` означает «заполни всё свободное пространство по главной оси» (Fill Container).
+
+### Как это работает в плагине:
+1.  Поле `layoutGrow` уже десериализуется в `FigmaDataModels.cs` (было и до v2.5.0).
+2.  `LayoutHandler.CanHandle()` теперь возвращает `true` для нод с `layoutGrow > 0`, даже если они сами не являются Auto Layout контейнерами.
+3.  В методе `ApplyLayoutGrow()` плагин:
+    *   Проверяет `context.ParentNode.layoutMode` — горизонтальный или вертикальный контейнер.
+    *   Добавляет `LayoutElement` на объект.
+    *   Устанавливает `flexibleWidth = layoutGrow` (для HORIZONTAL) или `flexibleHeight = layoutGrow` (для VERTICAL).
+
+### Для дизайнеров:
+Просто установите "Fill Container" на дочернем элементе Auto Layout фрейма в Figma. При синхронизации плагин автоматически применит `LayoutElement` с правильным значением `flexible`.
+
+---
 **BrainySoftware OU © 2026**
-**Версия документа:** 2.4.1 (Deep Constraints Edition)
+**Версия документа:** 2.5.0

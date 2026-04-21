@@ -1,6 +1,6 @@
-# Figma to Unity Importer | Designer Guide v2.4.1 (Deep Constraints)
+# Figma to Unity Importer | Designer Guide v2.5.0
 
-Данный инструмент предназначен для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity с использованием системы uGUI. Версия 2.4.1 фокусируется на глубокой поддержке адаптивности (Constraints Transition) и стабильности масок.
+Данный инструмент предназначен для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity с использованием системы uGUI. Версия 2.5.0 фокусируется на системе логирования, гибком масштабе изображений и поддержке Fill Container.
 
 ---
 
@@ -8,7 +8,7 @@
 Плагин теперь устанавливается через **Unity Package Manager** (UPM):
 1. **Window -> Package Manager**.
 2. **+ -> Add package from git URL...**.
-3. Вставьте: `https://github.com/Menta1ik/figma-to-unity.git?path=/plugin`
+3. Вставьте: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.5.0`
 
 ---
 
@@ -37,17 +37,17 @@
 
 Основной рабочий хаб доступен через: **Window -> Figma Importer -> Dashboard**.
 
-### Ключевые функции v2.3.1:
+### Ключевые функции v2.5.0:
 * **Font Audit**: Перед импортом нажмите эту кнопку. Она проверит все шрифты в макете и сопоставит их с вашими `TMP Font Assets`. Если маппинга нет — импорт выдаст ошибку, предотвращая "битую" верстку.
 * **Reskin Mode**: Позволяет обновить визуальную часть (цвета, спрайты, прозрачность) существующего окна, не меняя его структуру и не трогая логические скрипты.
 * **Stencil Health**: В версии 2.4.1 маски стали «умными». Если плагин видит слишком глубокое вложение масок, он сам переключит их на `RectMask2D`, чтобы избежать ошибок отрисовки Unity.
-* **Health Check**: Если что-то идет не так — используйте встроенный аудит: `Figma Importer -> Diagnostics -> Health Check (v2.4.1)`.
+* **Health Check**: Если что-то идет не так — используйте встроенный аудит: `Figma Importer -> Diagnostics -> Health Check (v2.5.0)`.
 
 ---
 
 ## ⚠️ Ограничения и советы
 * **Opacity**: Плагин теперь корректно суммирует прозрачность слоя (Node Opacity) и прозрачность заливки (Fill Opacity).
-* **Auto Layout**: Поддерживается нативно. Используйте `Auto Layout` в Figma — плагин создаст соответствующие `Vertical/Horizontal Layout Groups`.
+* **Auto Layout**: Поддерживается нативно. Используйте `Auto Layout` в Figma — плагин создаст соответствующие `Vertical/Horizontal Layout Groups`. Начиная с v2.5.0 также поддерживается **Fill Container** — элементы, заполняющие свободное пространство, автоматически получат `LayoutElement` с `flexibleWidth/Height`.
 * **Masks**: Маскирование в Figma (sibling mask) транслируется в Unity как `Parent Mask`. Группируйте маскируемые объекты внутри фрейма с маской.
 
 ---
