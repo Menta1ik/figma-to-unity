@@ -1,9 +1,8 @@
 using UnityEngine;
+using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Data
 {
-    public enum FigmaLogLevel { Silent, Minimal, Verbose }
-
     [CreateAssetMenu(fileName = "FigmaImporterSettings", menuName = "Figma Importer/Settings", order = 1)]
     public class FigmaImporterSettings : ScriptableObject
     {
