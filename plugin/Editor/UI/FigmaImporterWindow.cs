@@ -43,13 +43,13 @@ namespace FigmaImporter.V2.UI
         [MenuItem("Figma Importer/Sync & Reskin Dashboard")]
         public static void ShowWindow()
         {
-            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.5.9");
+            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.6.0");
             window.minSize = new Vector2(350, 450);
         }
 
         private void OnEnable()
         {
-            titleContent = new GUIContent("Figma v2.5.9");
+            titleContent = new GUIContent("Figma v2.6.0");
         }
 
         private void OnGUI()
@@ -72,7 +72,7 @@ namespace FigmaImporter.V2.UI
                 EditorGUIUtility.labelWidth = 160f;
 
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.5.9", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.6.0", EditorStyles.boldLabel);
             
             // --- SECTION 1: CONNECTION ---
             EditorGUILayout.BeginVertical("box");
@@ -234,7 +234,7 @@ namespace FigmaImporter.V2.UI
             }
 
             EditorGUILayout.Space(20);
-            EditorGUILayout.LabelField($"v2.5.9 Build Date: {DateTime.Now:yyyy-MM-dd HH:mm}", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField($"v2.6.0 Build Date: {DateTime.Now:yyyy-MM-dd HH:mm}", EditorStyles.miniLabel);
 
             EditorGUILayout.EndScrollView();
             }
@@ -344,7 +344,7 @@ namespace FigmaImporter.V2.UI
                     string jsonPath = Path.Combine(Application.dataPath, "lobby_figma.json");
                     if (!File.Exists(jsonPath))
                     {
-                        FigmaLog.Error($"[Figma v2.5.9] Local file not found: {jsonPath}");
+                        FigmaLog.Error($"[Figma v2.6.0] Local file not found: {jsonPath}");
                         return;
                     }
                     jsonContent = File.ReadAllText(jsonPath);
@@ -382,7 +382,7 @@ namespace FigmaImporter.V2.UI
             {
                 Undo.DestroyObjectImmediate(_rootCanvas.GetChild(i).gameObject);
             }
-            FigmaLog.Info("[Figma v2.5.9] Canvas cleared successfully!");
+            FigmaLog.Info("[Figma v2.6.0] Canvas cleared successfully!");
         }
         private async void RunInteractiveTest()
         {
