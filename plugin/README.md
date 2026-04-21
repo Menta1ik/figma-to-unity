@@ -1,4 +1,4 @@
-# Figma Importer v2.4.1 (UPM)
+# Figma Importer v2.5.0 (UPM)
 
 Мощный инструмент для профессионального импорта UI из Figma в Unity с поддержкой **Smart Sync**, автоматизацией префабов и неразрушающим обновлением.
 
@@ -12,7 +12,7 @@ This package is designed for the **Unity Package Manager (UPM)**.
 1. Open your Unity project.
 2. Go to `Window -> Package Manager`.
 3. Click `+` -> **"Add package from git URL..."**.
-4. Paste: `https://github.com/Menta1ik/figma-to-unity.git?path=/plugin`
+4. Paste: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.5.0`
 
 ### Option B: Local Disk
 Select the `package.json` file inside the `plugin` folder.
@@ -34,15 +34,16 @@ Select the `package.json` file inside the `plugin` folder.
 
 ---
 
-## 🛠 New in v2.4.1 (Production Hardening)
-*   **Service-Oriented Architecture**: Рефакторинг ядра (выделены `ImageSyncService`, `PrefabManager`), повышающий стабильность и расширяемость.
-*   **Icon Detection Cache**: Оптимизация производительности в `ImageHandler` (кэширование кандидатов на иконки), решающая проблему больших макетов.
-*   **Deep Diagnostics**: Улучшенный `FigmaHealthCheck` с проверкой целостности `asmdef`, версий и архитектурных связей.
-*   **Reliable Unit Tests**: Добавлен набор тестов для верификации логики рескина и кэширования.
-*   **Soft-Delete**: Предотвращение потери данных путем маркировки старых элементов вместо их удаления.
-*   **Auto Layout**: Поддержка горизонтальных/вертикальных макетов и Content Size Fitter.
-*   **Parallel Loading**: Многопоточная синхронизация изображений для лучшей производительности.
-*   **Batch processing**: Надежная загрузка больших файлов (батчи по 25 штук).
+## 🛠 New in v2.5.0
+*   **Logging System (FigmaLog)**: Централизованное управление логами. Три уровня: `Silent`, `Minimal`, `Verbose`. Настраивается в `FigmaImporterSettings`. Консоль больше не засоряется при импорте 500+ элементов.
+*   **Configurable Image Scale**: Слайдер `Image Export Scale` (0.5–4x, default 2x) в настройках и в окне импортера. Ранее масштаб был хардкоднут как 3x.
+*   **Fill Container (layoutGrow)**: Элементы с "Fill Container" в Figma Auto Layout автоматически получают `LayoutElement.flexibleWidth/Height` в Unity.
+*   **Token Security**: Access Token хранится в `SessionState` — безопасно переживает перезагрузку домена, никогда не сохраняется на диск.
+*   **Honest User-Agent**: API-запросы используют идентификатор `FigmaImporter/{version}` вместо фейкового браузерного агента.
+
+### Previous (v2.4.1)
+*   Service-Oriented Architecture, Icon Detection Cache, Deep Diagnostics, Unit Tests.
+*   Soft-Delete, Auto Layout, Parallel Loading, Batch Processing, Stencil Guard.
 
 ---
 
