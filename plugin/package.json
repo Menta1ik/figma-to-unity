@@ -1,9 +1,14 @@
 {
   "name": "com.figmaimporter.v2",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "displayName": "Figma Importer V2",
   "description": "Figma to Unity UI Pipeline with Non-Destructive Update architecture.",
   "unity": "2021.3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Menta1ik/figma-to-unity.git",
+    "directory": "plugin"
+  },
   "author": {
     "name": "BrainySoftware OU",
     "url": "https://github.com/Menta1ik"
