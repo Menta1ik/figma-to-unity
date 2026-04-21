@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using FigmaImporter.V2.Data;
-using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Core.Validation
 {
@@ -32,21 +31,21 @@ namespace FigmaImporter.V2.Core.Validation
         {
             if (_issues.Count == 0)
             {
-                FigmaLog.Info("<color=green>[Transform Audit]</color> Clean! No geometry issues detected.");
+                Debug.Log("<color=green>[Transform Audit]</color> Clean! No geometry issues detected.");
                 return;
             }
 
             int fatals = _issues.Count(i => i.Severity == Severity.Fatal);
             int warnings = _issues.Count(i => i.Severity != Severity.Fatal);
 
-            FigmaLog.Info($"<color=orange>[Transform Audit Report]</color> Found {_issues.Count} issues ({fatals} Fatal, {warnings} Warnings).");
+            Debug.Log($"<color=orange>[Transform Audit Report]</color> Found {_issues.Count} issues ({fatals} Fatal, {warnings} Warnings).");
 
             foreach (var issue in _issues)
             {
                 if (issue.Severity == Severity.Fatal)
-                    FigmaLog.Error(issue.ToString());
+                    Debug.LogError(issue.ToString());
                 else
-                    FigmaLog.Warning(issue.ToString());
+                    Debug.LogWarning(issue.ToString());
             }
         }
     }

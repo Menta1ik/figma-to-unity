@@ -14,7 +14,6 @@ using FigmaImporter.V2.Core.Handlers;
 using FigmaImporter.V2.Core.Validation;
 using FigmaImporter.V2.Runtime;
 using FigmaImporter.V2.Core.Services;
-using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Core
 {
@@ -58,11 +57,9 @@ namespace FigmaImporter.V2.Core
 
         public async Task RunSync(Transform rootCanvas, string nodeId = "", CancellationToken ct = default)
         {
-            if (Settings != null) FigmaLog.SetLevel(Settings.logLevel);
-
             if (string.IsNullOrEmpty(_accessToken) || string.IsNullOrEmpty(_fileId))
             {
-                FigmaLog.Error("[Figma v2.5.4] Cannot run Sync without Token and File ID.");
+                Debug.LogError("[Figma v2.4.1] Cannot run Sync without Token and File ID.");
                 return;
             }
 
@@ -83,8 +80,6 @@ namespace FigmaImporter.V2.Core
 
         public async Task ProcessFileAsync(string jsonContent, Transform rootCanvas, Action<int, int, string> onProgress = null, CancellationToken ct = default)
         {
-            if (Settings != null) FigmaLog.SetLevel(Settings.logLevel);
-
             FigmaFileResponse response = JsonConvert.DeserializeObject<FigmaFileResponse>(jsonContent);
             if (response == null) return;
 
@@ -279,7 +274,7 @@ namespace FigmaImporter.V2.Core
                 await imageService.SyncImagesAsync(target.name, _handlerContext, _sessionCache, null, ct);
             }
 
-            FigmaLog.Info($"<color=cyan>[Figma v2.5.4] Reskin completed for {target.name}!</color>");
+            Debug.Log($"<color=cyan>[Figma v2.4.1] Reskin completed for {target.name}!</color>");
         }
 
         public async Task RunFontAudit(string nodeId = "", CancellationToken ct = default)
@@ -334,7 +329,7 @@ namespace FigmaImporter.V2.Core
             foreach (var handler in _handlers)
             {
                 try { if (handler.CanHandle(node)) handler.Apply(node, element, _handlerContext); }
-                catch (Exception e) { FigmaLog.Error($"[Figma v2.5.4] Error in {handler.GetType().Name} for {node.name}: {e.Message}"); }
+                catch (Exception e) { Debug.LogError($"[Figma v2.4.1] Error in {handler.GetType().Name} for {node.name}: {e.Message}"); }
             }
 
             if (node.isMask || node.clipsContent)
@@ -391,8 +386,8 @@ namespace FigmaImporter.V2.Core
                 if (match) mapped.Add(desc); else missing.Add(desc);
             }
 
-            if (mapped.Count > 0) FigmaLog.Info($"<color=green>Mapped ({mapped.Count}):</color> {string.Join(", ", mapped)}");
-            if (missing.Count > 0) FigmaLog.Error($"<color=red>MISSING ({missing.Count}):</color> {string.Join(", ", missing)}");
+            if (mapped.Count > 0) Debug.Log($"<color=green>✅ Mapped ({mapped.Count}):</color> {string.Join(", ", mapped)}");
+            if (missing.Count > 0) Debug.LogError($"<color=red>❌ MISSING ({missing.Count}):</color> {string.Join(", ", missing)}");
         }
 
         private void CollectFontsRecursive(FigmaNode node, HashSet<(string, string, int)> fonts)
@@ -491,7 +486,7 @@ namespace FigmaImporter.V2.Core
                             containerGo.AddComponent<RectMask2D>();
                             
                         string reason = !isComplex ? "Simple Shape" : "Depth Limit Reached";
-                        FigmaLog.Verbose($"[Mask Optimization] '{maskGo.name}' (type: {maskNode.type}) using RectMask2D (Reason: {reason}, Current Depth: {currentStencilDepth})");
+                        Debug.Log($"[Mask Optimization] '{maskGo.name}' (type: {maskNode.type}) using RectMask2D (Reason: {reason}, Current Depth: {currentStencilDepth})");
                     }
                     else
                     {
@@ -516,7 +511,7 @@ namespace FigmaImporter.V2.Core
                         if (containerGo.GetComponent<Mask>() == null)
                             containerGo.AddComponent<Mask>().showMaskGraphic = false;
                             
-                        FigmaLog.Verbose($"[Mask Optimization] '{maskGo.name}' using STENCIL Mask (Complex Shape and Depth: {currentStencilDepth})");
+                        Debug.Log($"[Mask Optimization] '{maskGo.name}' using STENCIL Mask (Complex Shape and Depth: {currentStencilDepth})");
                     }
 
                     // Move original element and siblings into container
@@ -624,7 +619,7 @@ namespace FigmaImporter.V2.Core
                             if (firstChild != null)
                             {
                                 refRes = new Vector2(firstChild.AbsoluteBox.width, firstChild.AbsoluteBox.height);
-                                FigmaLog.Info($"[Figma v2.5.4] Auto-detected Reference Resolution from Frame: {refRes.x}x{refRes.y}");
+                                Debug.Log($"[Figma v2.4.1] Auto-detected Reference Resolution from Frame: {refRes.x}x{refRes.y}");
                             }
                         }
                     }
@@ -640,8 +635,8 @@ namespace FigmaImporter.V2.Core
             }
             
             EditorUtility.SetDirty(scaler);
-            FigmaLog.Info($"[Figma v2.5.4] CanvasScaler updated to {Settings.canvasScaleMode}");
+            Debug.Log($"[Figma v2.4.1] CanvasScaler updated to {Settings.canvasScaleMode}");
         }
     }
-// [Figma-to-Unity] Stencil Mask Guard and Hierarchy Optimization v2.5.4.
+// [Figma-to-Unity] Stencil Mask Guard and Hierarchy Optimization v2.4.1.
 }

@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using FigmaImporter.V2.Data;
-using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Core.Handlers
 {
@@ -14,9 +13,9 @@ namespace FigmaImporter.V2.Core.Handlers
     {
         public bool CanHandle(FigmaNode node)
         {
-            bool isAutoLayout = !string.IsNullOrEmpty(node.layoutMode) &&
-                                (node.layoutMode == "HORIZONTAL" || node.layoutMode == "VERTICAL");
-            return isAutoLayout || node.layoutGrow > 0;
+            // Only handle nodes that have Auto Layout enabled
+            return !string.IsNullOrEmpty(node.layoutMode) && 
+                   (node.layoutMode == "HORIZONTAL" || node.layoutMode == "VERTICAL");
         }
 
         public void Apply(FigmaNode node, FigmaElement target, FigmaHandlerContext context)
@@ -32,12 +31,8 @@ namespace FigmaImporter.V2.Core.Handlers
                 ApplyVerticalLayout(node, go);
             }
 
-            if (!string.IsNullOrEmpty(node.layoutMode))
-            {
-                ApplyContentSizeFitter(node, go);
-            }
-
-            ApplyLayoutGrow(node, go, context);
+            // Content Size Fitter for AUTO sizing
+            ApplyContentSizeFitter(node, go);
         }
 
         private void ApplyHorizontalLayout(FigmaNode node, GameObject go)
@@ -51,7 +46,7 @@ namespace FigmaImporter.V2.Core.Handlers
 
             ConfigureLayoutGroup(layout, node);
 
-            FigmaLog.Verbose($"[FigmaImporter] Applied HorizontalLayoutGroup to '{go.name}' " +
+            Debug.Log($"[FigmaImporter] Applied HorizontalLayoutGroup to '{go.name}' " +
                       $"(spacing: {node.itemSpacing}, padding: L{node.paddingLeft}/R{node.paddingRight}/T{node.paddingTop}/B{node.paddingBottom})");
         }
 
@@ -66,7 +61,7 @@ namespace FigmaImporter.V2.Core.Handlers
 
             ConfigureLayoutGroup(layout, node);
 
-            FigmaLog.Verbose($"[FigmaImporter] Applied VerticalLayoutGroup to '{go.name}' " +
+            Debug.Log($"[FigmaImporter] Applied VerticalLayoutGroup to '{go.name}' " +
                       $"(spacing: {node.itemSpacing}, padding: L{node.paddingLeft}/R{node.paddingRight}/T{node.paddingTop}/B{node.paddingBottom})");
         }
 
@@ -101,22 +96,6 @@ namespace FigmaImporter.V2.Core.Handlers
             // Force expand: when children should stretch to fill the axis
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
-        }
-
-        private void ApplyLayoutGrow(FigmaNode node, GameObject go, FigmaHandlerContext context)
-        {
-            if (node.layoutGrow <= 0) return;
-
-            var parent = context.ParentNode;
-            if (parent == null || string.IsNullOrEmpty(parent.layoutMode)) return;
-
-            var layoutElement = go.GetComponent<LayoutElement>();
-            if (layoutElement == null) layoutElement = go.AddComponent<LayoutElement>();
-
-            if (parent.layoutMode == "HORIZONTAL")
-                layoutElement.flexibleWidth = node.layoutGrow;
-            else
-                layoutElement.flexibleHeight = node.layoutGrow;
         }
 
         private void ApplyContentSizeFitter(FigmaNode node, GameObject go)

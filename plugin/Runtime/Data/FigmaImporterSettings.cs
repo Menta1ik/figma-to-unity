@@ -1,63 +1,30 @@
 using UnityEngine;
-using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Data
 {
     [CreateAssetMenu(fileName = "FigmaImporterSettings", menuName = "Figma Importer/Settings", order = 1)]
     public class FigmaImporterSettings : ScriptableObject
     {
-        [Header("Optimization & Audit")]
-        [Tooltip("If true, Font Audit will scan the entire Figma file. If false, it will only scan the selected Node ID.")]
-        [SerializeField] private bool auditEntireFile = false;
-        public bool AuditEntireFile => auditEntireFile;
+        [Header("Naming Conventions")]
+        public string framePrefix = "Frame_";
+        public string textPrefix = "Text_";
+        public string imagePrefix = "Image_";
+        public string vectorPrefix = "Vector_";
+
+        [Header("Hierarchy Options")]
+        public bool createPrefabsForTopFrames = false;
+        public bool useCompactHierarchy = true;
+
+        [Header("Image Options")]
+        public bool exportAssetsAsSprites = true;
+        [Range(0.5f, 4f)]
+        public float imageExportScale = 1.0f;
 
         [Header("Logging")]
-        [Tooltip("Silent = no logs, Minimal = milestones only, Verbose = per-node details.")]
-        [SerializeField] public FigmaLogLevel logLevel = FigmaLogLevel.Minimal;
+        [SerializeField]
+        public FigmaLogLevel logLevel = FigmaLogLevel.Minimal;
 
-        [Header("Image Export")]
-        [Range(0.5f, 4f)]
-        [Tooltip("Scale factor for image export from Figma API (1 = original, 2 = 2x, etc.).")]
-        [SerializeField] private float _imageExportScale = 2f;
-        public float ImageExportScale => _imageExportScale;
-
-        [Header("Asset Paths")]
-        [Tooltip("Path relative to Assets/ folder where sprites will be saved.")]
-        public string baseSpritesPath = "UI/Generated/Sprites";
-        
-        [Tooltip("Path relative to Assets/ folder where generated prefabs or scenes will be saved.")]
-        public string basePrefabsPath = "UI/Generated/Prefabs";
-
-        [Header("UI Interaction")]
-        [Tooltip("If true, all elements will have Raycast Target disabled by default, except for interactive markers.")]
-        public bool disableRaycastByDefault = true;
-
-        [Header("Non-Destructive Policy")]
-        [Tooltip("If true, manually changed GameObject names in Unity will not be overwritten by Figma node names.")]
-        public bool preserveUnityNames = true;
-
-        [Tooltip("If true, manually added components in Unity will not be removed.")]
-        public bool preserveManualComponents = true;
-        
-        [Header("Interactive Markers")]
-        public string buttonMarker = "[Btn]";
-        public string inputMarker = "[Input]";
-        public string scrollMarker = "[Scroll]";
-        public string toggleMarker = "[Toggle]";
-
-        [Header("Adaptive Layout")]
-        [Tooltip("If true, translate Figma constraints to RectTransform anchors and offsets.")]
-        public bool enableConstraintsTranslation = false;
-
-        public enum CanvasScaleMode { None, ConstantPixelSize, ScaleWithScreenSize }
-        [Tooltip("How the root Canvas should scale.")]
-        public CanvasScaleMode canvasScaleMode = CanvasScaleMode.None;
-
-        [Tooltip("The resolution that the UI is designed for (e.g. 1920x1080).")]
-        public Vector2 referenceResolution = new Vector2(1920, 1080);
-
-        [Range(0, 1)]
-        [Tooltip("0 = Width, 1 = Height. 0.5 = Balanced.")]
-        public float matchWidthOrHeight = 0.5f;
+        [Header("Scene Management")]
+        public bool autoSaveOnSync = true;
     }
 }

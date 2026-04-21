@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 using FigmaImporter.V2.Core;
-using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.UI
 {
@@ -79,7 +78,7 @@ namespace FigmaImporter.V2.UI
                 }
                 else
                 {
-                    FigmaLog.Error($"[Figma v2.5.4] Файл не найден: {path}");
+                    Debug.LogError($"[Figma v2.4.1] Файл не найден: {path}");
                     manager.UpdateStatus("Ошибка: Файл не найден.");
                     return;
                 }
@@ -100,11 +99,11 @@ namespace FigmaImporter.V2.UI
                 });
 
                 manager.UpdateStatus("Синхронизация завершена!");
-                FigmaLog.Info("<color=green>[Figma v2.5.4]</color> Успешно!");
+                Debug.Log("<color=green>[Figma v2.4.1]</color> Успешно!");
             }
             catch (System.Exception e)
             {
-                FigmaLog.Error($"[Figma v2.5.4] Ошибка: {e.Message}");
+                Debug.LogError($"[Figma v2.4.1] Ошибка: {e.Message}");
                 manager.UpdateStatus("Ошибка синхронизации.");
             }
             finally
@@ -122,7 +121,7 @@ namespace FigmaImporter.V2.UI
             {
                 Undo.DestroyObjectImmediate(parent.GetChild(i).gameObject);
             }
-            FigmaLog.Info("[Figma v2.5.4] Дочерние объекты очищены!");
+            Debug.Log("[Figma v2.4.1] Дочерние объекты очищены!");
         }
     }
 }

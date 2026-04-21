@@ -4,7 +4,6 @@ using UnityEditor;
 using TMPro;
 using System.Linq;
 using FigmaImporter.V2.Data;
-using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Core.Handlers
 {
@@ -88,7 +87,7 @@ namespace FigmaImporter.V2.Core.Handlers
                                 
                                 if (bestMatch != null)
                                 {
-                                    FigmaLog.Verbose($"<color=orange>[FigmaImporter]</color> Exact weight {weight} not found for '{figmaFamily}'. " +
+                                    Debug.Log($"<color=orange>[FigmaImporter]</color> Exact weight {weight} not found for '{figmaFamily}'. " +
                                               $"Using closest: {bestMatch.figmaFontWeight} ({bestMatch.targetTMPAsset?.name})");
                                 }
                             }
@@ -100,14 +99,14 @@ namespace FigmaImporter.V2.Core.Handlers
                         var oldFont = tmp.font != null ? tmp.font.name : "null";
                         if (SafeSetFont(tmp, bestMatch.targetTMPAsset))
                         {
-                            FigmaLog.Verbose($"<color=cyan>[FigmaImporter]</color> Font replaced: <b>{node.name}</b> ('{oldFont}' -> '<b>{tmp.font.name}</b>')");
+                            Debug.Log($"<color=cyan>[FigmaImporter]</color> Font replaced: <b>{node.name}</b> ('{oldFont}' -> '<b>{tmp.font.name}</b>')");
                         }
                     }
                     else
                     {
                         if (!string.IsNullOrEmpty(figmaFamily))
                         {
-                            FigmaLog.Warning($"<color=red>[FigmaImporter] Font Mapping Missing!</color>\n" +
+                            Debug.LogWarning($"<color=red>[FigmaImporter] Font Mapping Missing!</color>\n" +
                                              $"Figma: <b>{figmaFamily}</b> (Weight: {weight})\n" +
                                              $"PostScript: <color=orange>{postScript}</color>\n" +
                                              $"<i>Please add this to your FontMappingTable asset.</i>");
@@ -141,7 +140,7 @@ namespace FigmaImporter.V2.Core.Handlers
                 // --- PROTECTION AGAINST EMPTY FONT ---
                 if (tmp.font == null)
                 {
-                    FigmaLog.Error($"[Figma v2.5.4] CRITICAL ERROR: Font not assigned for text '{node.name}'.");
+                    Debug.LogError($"[Figma v2.4.1] 💀 CRITICAL ERROR: Font not assigned for text '{node.name}'.");
                     tmp.enabled = false; 
                 }
                 else

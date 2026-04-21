@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.UI;
-using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Utils
 {
@@ -17,7 +16,7 @@ namespace FigmaImporter.V2.Utils
             int found = 0;
             var allRects = Object.FindObjectsByType<RectTransform>(FindObjectsInactive.Include);
             
-            FigmaLog.Info($"<color=cyan>[Sniper]</color> Starting emergency scan of {allRects.Length} objects...");
+            Debug.Log($"<color=cyan>[Sniper]</color> Starting emergency scan of {allRects.Length} objects...");
 
             foreach (var rt in allRects)
             {
@@ -38,7 +37,7 @@ namespace FigmaImporter.V2.Utils
                 {
                     found++;
                     string name = rt.gameObject.name;
-                    FigmaLog.Error($"<color=red>[TARGET DESTROYED]</color> {name}. NaN detected. OBJECT REMOVED.");
+                    Debug.LogError($"<color=red>[TARGET DESTROYED]</color> {name}. NaN detected. OBJECT REMOVED.");
                     // Physically remove object to unblock render
                     Object.DestroyImmediate(rt.gameObject);
                 }

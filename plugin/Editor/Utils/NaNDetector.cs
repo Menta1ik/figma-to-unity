@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using FigmaImporter.V2;
 
 namespace FigmaImporter.V2.Utils
 {
@@ -28,7 +27,7 @@ namespace FigmaImporter.V2.Utils
 
             try 
             {
-                GUILayout.Label("uGUI Anomaly Radar (v2.5.4)", EditorStyles.boldLabel);
+                GUILayout.Label("uGUI Anomaly Radar (v2.4.1)", EditorStyles.boldLabel);
                 EditorGUILayout.Space();
 
                 if (GUILayout.Button("📡 SCAN SCENE", GUILayout.Height(40)))
@@ -64,7 +63,7 @@ namespace FigmaImporter.V2.Utils
                 if (isInvalid)
                 {
                     found++;
-                    FigmaLog.Error($"[Radar] Invalid values found in: {rt.gameObject.name}");
+                    Debug.LogError($"[Radar] Invalid values found in: {rt.gameObject.name}", rt.gameObject);
                     if (fix)
                     {
                         Undo.RecordObject(rt, "Fix NaN");
