@@ -1,4 +1,4 @@
-# 🌌 Figma to Unity Importer v2.4.1 (Deep Constraints Edition)
+# 🌌 Figma to Unity Importer v2.5.0
 
 **Figma-to-Unity Pipeline** — профессиональный инструмент для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity uGUI. Плагин использует неразрушающую архитектуру **Smart Sync**, позволяя обновлять UI из Figma без потери ваших изменений (скриптов, анимаций) в Unity.
 
@@ -11,7 +11,7 @@
 1. Откройте **Window -> Package Manager** в Unity.
 2. Нажмите **+** -> **Add package from git URL...**.
 3. Вставьте ссылку:
-   `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.4.1`
+   `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.5.0`
 
 ---
 
@@ -24,18 +24,18 @@
 
 ---
 
-## 🛠 Ключевые особенности v2.4.1
+## 🛠 Ключевые особенности v2.5.0
 
-- **Deep Adaptive Layout**: Полная трансляция Figma Constraints (`Left`, `Right`, `Center`, `Stretch`, `Scale`) в Unity Anchors/Offsets. Покрыто тестами.
-- **Stencil Mask Guard**: Автоматический контроль вложенности масок (лимит 3 уровня). Предотвращает ошибки Unity "stencil mask depth > 8".
-- **Auto RectMask2D Fallback**: Автоматическое переключение на `RectMask2D` при превышении лимита глубины или для простых фигур.
-- **Aggressive Hierarchy Flattening**: Умный демонтаж технических контейнеров `[Mask]` при каждой синхронизации.
-- **Global API First**: Плагин оптимизирован для работы через Figma API.
-- **Soft-Delete Mode**: Объекты помечаются `FigmaOrphanedElement` вместо физического удаления.
+- **Система логирования (FigmaLog)**: Три уровня вывода (`Silent` / `Minimal` / `Verbose`) через настройки — консоль больше не захламляется при импорте сотен нод.
+- **Настраиваемый масштаб изображений**: Слайдер `Image Export Scale` (0.5–4x) в настройках и окне импортера. По умолчанию 2x вместо хардкодного 3x.
+- **Fill Container (layoutGrow)**: Поддержка Figma Auto Layout "Fill Container" — автоматическая трансляция в `LayoutElement.flexibleWidth/Height`.
+- **Безопасность токена**: Access Token хранится в `SessionState` — переживает перезагрузку домена, но никогда не попадает на диск.
+- **Deep Adaptive Layout**: Полная трансляция Figma Constraints (`Left`, `Right`, `Center`, `Stretch`, `Scale`) в Unity Anchors/Offsets.
+- **Stencil Mask Guard**: Автоматический контроль вложенности масок (лимит 3 уровня).
 - **Auto Layout Support**: Полная трансляция Figma Auto Layout в Unity `Horizontal/Vertical Layout Group`.
 - **Non-Destructive Update**: Сохранение ваших скриптов и анимаций при синхронизации.
 
-### 📱 Adaptive Layout (v2.4.1)
+### 📱 Adaptive Layout (v2.5.0)
 Плагин поддерживает продвинутое масштабирование и перенос констрейнтов:
 - **Enable Constraints Translation**: Автоматический маппинг Figma constraints в анкоры `RectTransform`.
 - **Canvas Scale Mode**: Режим масштабирования (`Scale With Screen Size`) настраивается автоматически.
