@@ -458,7 +458,7 @@ namespace FigmaImporter.V2.UI
         {
             if (EditorUtility.DisplayDialog("Figma Importer Update", "This will fetch the latest version from GitHub. Unity will reload and recompile.", "Update Now", "Cancel"))
             {
-                UnityEditor.PackageManager.Client.Add("https://github.com/Menta1ik/figma-to-unity.git?path=/plugin");
+                UnityEditor.PackageManager.Client.Add("https://github.com/Menta1ik/figma-to-unity.git?path=plugin");
                 FigmaLog.Info("[FigmaImporter] Requesting update from GitHub... Please wait.");
             }
         }
