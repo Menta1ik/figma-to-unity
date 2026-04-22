@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using FigmaImporter.V2.Core;
 using FigmaImporter.V2.Core.Handlers;
 using FigmaImporter.V2.Data;
+using FigmaImporter.V2.Runtime;
 using System.Collections.Generic;
 using UnityEditor;
 
@@ -115,37 +116,35 @@ namespace FigmaImporter.V2.Tests
         public void Parser_ParentNodeContext_IsRestoredAfterRecursion()
         {
             var root = new GameObject("Root");
-            var parser = new FigmaParser();
-            
+
             var child2 = new FigmaNode { id = "child2", name = "Child 2" };
-            var child1 = new FigmaNode 
-            { 
-                id = "child1", 
-                name = "Child 1", 
-                children = new List<FigmaNode> { child2 } 
+            var child1 = new FigmaNode
+            {
+                id = "child1",
+                name = "Child 1",
+                children = new List<FigmaNode> { child2 }
             };
-            var rootNode = new FigmaNode 
-            { 
-                id = "root", 
-                name = "Root", 
-                children = new List<FigmaNode> { child1 } 
+            var rootNode = new FigmaNode
+            {
+                id = "root",
+                name = "Root",
+                children = new List<FigmaNode> { child1 }
             };
 
-            var contextField = typeof(FigmaParser).GetField("_handlerContext", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var context = new FigmaHandlerContext();
-            contextField.SetValue(parser, context);
+            var processedIds = new HashSet<string>();
+            var sessionCache = new Dictionary<string, FigmaElement>();
+            var deferredMasks = new List<(FigmaNode, FigmaElement, int)>();
 
-            // Initialize internal parser state to avoid NREs during recursion
-            typeof(FigmaParser).GetField("_processedIds", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(parser, new HashSet<string>());
-            typeof(FigmaParser).GetField("_sessionCache", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(parser, new Dictionary<string, FigmaElement>());
-            typeof(FigmaParser).GetField("_handlers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(parser, new List<IFigmaComponentHandler>());
-            typeof(FigmaParser).GetField("_deferredMasks", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(parser, new List<(FigmaNode, FigmaElement)>());
+            var walker = new FigmaTreeWalker(
+                new List<IFigmaComponentHandler>(),
+                context,
+                new Dictionary<string, FigmaElement>(),
+                sessionCache,
+                processedIds,
+                deferredMasks);
 
-            int current = 0;
-            var method = typeof(FigmaParser).GetMethod("SyncRecursive", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            
-            // Invoke SyncRecursive on rootNode
-            method.Invoke(parser, new object[] { rootNode, root.transform, "path", current, 3, null, default(System.Threading.CancellationToken) });
+            walker.SyncAll(new List<FigmaNode> { rootNode }, root.transform, null, default);
 
             // After full sync, context.ParentNode should be back to null (or previous value)
             Assert.IsNull(context.ParentNode, "ParentNode should be restored to null after root processing");

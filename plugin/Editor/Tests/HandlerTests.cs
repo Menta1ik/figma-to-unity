@@ -221,22 +221,14 @@ namespace FigmaImporter.V2.Tests
             var element = go.AddComponent<FigmaElement>();
             element.FigmaNodeId = "orphan_id";
 
-            // Add private field access using reflection if needed, but existingCache is calculated from children
-            var parser = new FigmaParser();
-            
-            // We need to simulate the state where existingCache has the child but processedIds doesn't
-            var existingCacheField = typeof(FigmaParser).GetField("_existingCache", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var processedIdsField = typeof(FigmaParser).GetField("_processedIds", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            
-            existingCacheField.SetValue(parser, new Dictionary<string, FigmaElement> { { "orphan_id", element } });
-            processedIdsField.SetValue(parser, new HashSet<string>());
+            var existingCache = new Dictionary<string, FigmaElement> { { "orphan_id", element } };
+            var processedIds = new HashSet<string>();
 
-            var method = typeof(FigmaParser).GetMethod("HandleDeletedElements", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            method.Invoke(parser, null);
+            FigmaOrphanManager.MarkOrphans(existingCache, processedIds);
 
             Assert.IsFalse(go.activeSelf, "Orphaned object should be deactivated");
             Assert.IsNotNull(go.GetComponent<FigmaOrphanedElement>(), "Orphan should have FigmaOrphanedElement component");
-            
+
             Object.DestroyImmediate(parent);
         }
 
@@ -271,14 +263,10 @@ namespace FigmaImporter.V2.Tests
             var item1Element = item1.AddComponent<FigmaElement>();
             item1Element.FigmaNodeId = "item_1";
 
-            var parser = new FigmaParser();
-            var deferredMasksField = typeof(FigmaParser).GetField("_deferredMasks", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var maskNode = new FigmaNode { id = "mask_1", isMask = true, clipsContent = true, type = "RECTANGLE", cornerRadius = 0f };
-            
-            deferredMasksField.SetValue(parser, new List<(FigmaNode, FigmaElement)> { (maskNode, maskElement) });
+            var deferredMasks = new List<(FigmaNode, FigmaElement, int)> { (maskNode, maskElement, 0) };
 
-            var method = typeof(FigmaParser).GetMethod("ApplyDeferredMasks", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            method.Invoke(parser, null);
+            FigmaMaskResolver.ApplyDeferred(deferredMasks);
 
             // Check if hierarchy changed: Item1 should be under a [Mask] container now
             var maskContainer = root.transform.Find("[Mask] MaskLayer");

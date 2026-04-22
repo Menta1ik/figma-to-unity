@@ -43,13 +43,13 @@ namespace FigmaImporter.V2.UI
         [MenuItem("Figma Importer/Sync & Reskin Dashboard")]
         public static void ShowWindow()
         {
-            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>("Figma v2.6.0");
+            FigmaImporterWindow window = GetWindow<FigmaImporterWindow>($"Figma v{FigmaImporter.Version}");
             window.minSize = new Vector2(350, 450);
         }
 
         private void OnEnable()
         {
-            titleContent = new GUIContent("Figma v2.6.0");
+            titleContent = new GUIContent($"Figma v{FigmaImporter.Version}");
         }
 
         private void OnGUI()
@@ -72,7 +72,7 @@ namespace FigmaImporter.V2.UI
                 EditorGUIUtility.labelWidth = 160f;
 
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField("🚀 Antigravity Figma Importer v2.6.0", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField($"🚀 Antigravity Figma Importer v{FigmaImporter.Version}", EditorStyles.boldLabel);
             
             // --- SECTION 1: CONNECTION ---
             EditorGUILayout.BeginVertical("box");
@@ -124,9 +124,9 @@ namespace FigmaImporter.V2.UI
             
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Font Audit")) RunFontAudit();
-            if (GUILayout.Button("Clear Image Cache")) 
+            if (GUILayout.Button("Clear Cache"))
             {
-                 FigmaLog.Info("[FigmaImporter] Image cache logic is internal to Parser.");
+                 FigmaAPIClient.ClearLocalCache();
             }
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndVertical();
@@ -234,7 +234,7 @@ namespace FigmaImporter.V2.UI
             }
 
             EditorGUILayout.Space(20);
-            EditorGUILayout.LabelField($"v2.6.0 Build Date: {DateTime.Now:yyyy-MM-dd HH:mm}", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField($"v{FigmaImporter.Version} Build Date: {DateTime.Now:yyyy-MM-dd HH:mm}", EditorStyles.miniLabel);
 
             EditorGUILayout.EndScrollView();
             }
@@ -344,7 +344,7 @@ namespace FigmaImporter.V2.UI
                     string jsonPath = Path.Combine(Application.dataPath, "lobby_figma.json");
                     if (!File.Exists(jsonPath))
                     {
-                        FigmaLog.Error($"[Figma v2.6.0] Local file not found: {jsonPath}");
+                        FigmaLog.Error($"{FigmaLog.VersionPrefix}Local file not found: {jsonPath}");
                         return;
                     }
                     jsonContent = File.ReadAllText(jsonPath);
@@ -382,7 +382,7 @@ namespace FigmaImporter.V2.UI
             {
                 Undo.DestroyObjectImmediate(_rootCanvas.GetChild(i).gameObject);
             }
-            FigmaLog.Info("[Figma v2.6.0] Canvas cleared successfully!");
+            FigmaLog.Info($"{FigmaLog.VersionPrefix}Canvas cleared successfully!");
         }
         private async void RunInteractiveTest()
         {

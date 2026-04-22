@@ -29,8 +29,8 @@ namespace FigmaImporter.V2.Core.Services
             bool success;
             PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction, out success);
             
-            if (success) FigmaLog.Info($"<color=green>[Figma v2.5.2] Prefab saved and connected: {prefabPath}</color>");
-            else FigmaLog.Error($"[Figma v2.5.2] Failed to save prefab at {prefabPath}");
+            if (success) FigmaLog.Info($"<color=green>{FigmaLog.VersionPrefix}Prefab saved and connected: {prefabPath}</color>");
+            else FigmaLog.Error($"{FigmaLog.VersionPrefix}Failed to save prefab at {prefabPath}");
         }
     }
 }

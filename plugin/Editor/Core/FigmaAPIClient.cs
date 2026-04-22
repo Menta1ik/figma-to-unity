@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
+using FigmaImporter.V2.Core.Services;
 
 namespace FigmaImporter.V2.Core
 {
@@ -19,9 +20,26 @@ namespace FigmaImporter.V2.Core
 
         public static void ClearLocalCache()
         {
-            // Simple bridge to Parser cache or internal deletion
-            FigmaLog.Info("[Figma API] Clearing local image cache...");
-            // Real implementation would delete from PersistentDataPath if exists
+            new FigmaResponseCache().ClearCache();
+        }
+
+        /// <summary>
+        /// Lightweight call to get only the file version from Figma API.
+        /// Used to check if the cached response is still valid.
+        /// </summary>
+        public async Task<string> GetFileVersionAsync(string fileId, CancellationToken ct = default)
+        {
+            if (string.IsNullOrEmpty(fileId)) return null;
+            string url = $"https://api.figma.com/v1/files/{fileId.Trim()}?fields=version";
+            string json = await ExecuteRequest(url, ct);
+            if (string.IsNullOrEmpty(json)) return null;
+
+            try
+            {
+                var obj = JsonConvert.DeserializeObject<FigmaVersionResponse>(json);
+                return obj?.version;
+            }
+            catch { return null; }
         }
 
         public async Task<string> GetFileAsync(string fileId, string nodeId = "", CancellationToken ct = default)
@@ -62,5 +80,6 @@ namespace FigmaImporter.V2.Core
         }
 
         [Serializable] private class FigmaImageResponse { public Dictionary<string, string> images; }
+        [Serializable] private class FigmaVersionResponse { public string version; }
     }
 }

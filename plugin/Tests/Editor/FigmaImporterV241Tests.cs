@@ -20,10 +20,9 @@ namespace FigmaImporter.V2.Tests
         // ============================================================
 
         [Test]
-        public void VersionString_ShouldMatch_231()
+        public void VersionString_ShouldMatch_Current()
         {
-            // Placeholder for version check
-            Assert.Pass();
+            Assert.AreEqual("2.7.0", FigmaImporter.Version);
         }
 
         [Test]

@@ -1,8 +1,8 @@
 {
   "name": "com.figmaimporter.v2",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "displayName": "Figma Importer V2",
-  "description": "Figma to Unity UI Pipeline with Non-Destructive Update architecture. CLEAN METADATA RESURRECTION.",
+  "description": "Figma to Unity UI Pipeline with Non-Destructive Update architecture. Modular parser, API response caching.",
   "unity": "2021.3",
   "repository": {
     "type": "git",

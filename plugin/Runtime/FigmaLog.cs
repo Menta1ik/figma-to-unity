@@ -8,6 +8,11 @@ namespace FigmaImporter.V2
     {
         private static FigmaLogLevel _level = FigmaLogLevel.Minimal;
 
+        /// <summary>
+        /// Global prefix for all logs for better filtering and tracking.
+        /// </summary>
+        public static string VersionPrefix => $"[Figma v{FigmaImporter.Version}] ";
+
         public static void SetLevel(FigmaLogLevel level) => _level = level;
 
         public static void Info(string message)

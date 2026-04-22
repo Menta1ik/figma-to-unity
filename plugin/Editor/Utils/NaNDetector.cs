@@ -28,7 +28,7 @@ namespace FigmaImporter.V2.Utils
 
             try 
             {
-                GUILayout.Label("uGUI Anomaly Radar (v2.5.2)", EditorStyles.boldLabel);
+                GUILayout.Label($"uGUI Anomaly Radar (v{FigmaImporter.Version})", EditorStyles.boldLabel);
                 EditorGUILayout.Space();
 
                 if (GUILayout.Button("📡 SCAN SCENE", GUILayout.Height(40)))
