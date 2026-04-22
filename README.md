@@ -1,6 +1,6 @@
-# 🌌 Figma to Unity Importer v2.7.3
+# 🌌 Antigravity Figma Importer v2.7.4
 
-**Figma-to-Unity Pipeline** — профессиональный инструмент для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity uGUI. Плагин использует неразрушающую архитектуру **Smart Sync**, позволяя обновлять UI из Figma без потери ваших изменений (скриптов, анимаций) в Unity.
+**Antigravity Figma Importer** — профессиональный инструмент для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity uGUI. Плагин использует неразрушающую архитектуру **Smart Sync**, позволяя обновлять UI из Figma без потери ваших изменений (скриптов, анимаций) в Unity.
 
 ---
 
@@ -11,7 +11,7 @@
 1. Откройте **Window -> Package Manager** в Unity.
 2. Нажмите **+** -> **Add package from git URL...**.
 3. Вставьте ссылку:
-   `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.7.3`
+   `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.7.4`
 
 ---
 
@@ -24,40 +24,19 @@
 
 ---
 
-## 🛠 Ключевые особенности v2.7.3 (Hotfix)
+## 🛠 Ключевые особенности v2.7.4 (Stability Update)
 
-### Новое в v2.7.3 — Prefab Stability & Auto-Update
+### Новое в v2.7.4 — UI Stability & UPM Fix
+- **Стабилизация OnGUI**: Весь интерфейс переведен на `EditorGUILayout.VerticalScope` и `HorizontalScope`. Ошибки `Invalid GUILayout state` и разбалансировка стека IMGUI полностью устранены.
+- **Исправление UPM Update**: Скорректирован путь в методе автоматического обновления (`?path=plugin`). Теперь кнопка "Update" в окне импорта работает корректно в Unity 2021.3+.
+- **Глобальный ребрендинг**: Проект официально переименован в **Antigravity Figma Importer**.
+
+### Новое в v2.7.3 — Prefab Stability
 - **Исправление блокировки префабов**: Устранена критическая ошибка `Setting the parent of a transform which resides in a Prefab instance is not possible`. Теперь плагин безопасно распаковывает иерархию перед синхронизацией.
-- **Кнопка авто-обновления**: В окно импорта возвращена кнопка **"Update Plugin to Latest (GitHub)"**, позволяющая обновлять инструмент в один клик напрямую из репозитория.
-
-### Новое в v2.7.1 — Core Hardening
-- **Nested Prefab Protection**: `FigmaMaskResolver` теперь защищает вложенные объекты от случайного удаления при демонтаже масок.
-- **MissingReference Guard**: Добавлены автоматические проверки на битые ссылки в кэше.
 
 ### Новое в v2.7.0 — Architecture Decomposition & API Caching
-- **Модульная архитектура**: FigmaParser декомпозирован из God Object (647 строк) в 6 фокусированных классов (-45% строк). Каждый класс — одна ответственность.
-- **API Response Caching**: Кеширование ответов Figma API в `Library/FigmaCache/`. Повторный sync без изменений в Figma — мгновенный (кеш-хит вместо сетевого запроса).
-- **Централизованная версия**: Единая константа `FigmaImporter.Version` вместо 15+ хардкод-строк по всему коду.
-- **58 юнит-тестов**: Покрытие выросло на 87% (было 31). Все тесты переведены с рефлексии на прямые вызовы.
-- **Рабочая кнопка Clear Cache**: Очистка кеша API-ответов прямо из UI.
-
-### Из v2.6.0
-- **Metadata Unblock Edition**: Исправлен .gitignore, блокировавший загрузку критических .meta файлов в Unity.
-- **Система логирования (FigmaLog)**: Три уровня вывода (`Silent` / `Minimal` / `Verbose`) через настройки — консоль больше не захламляется при импорте сотен нод.
-- **Настраиваемый масштаб изображений**: Слайдер `Image Export Scale` (0.5–4x) в настройках и окне импортера. По умолчанию 2x вместо хардкодного 3x.
-- **Fill Container (layoutGrow)**: Поддержка Figma Auto Layout "Fill Container" — автоматическая трансляция в `LayoutElement.flexibleWidth/Height`.
-- **Безопасность токена**: Access Token хранится в `SessionState` — переживает перезагрузку домена, но никогда не попадает на диск.
-- **Deep Adaptive Layout**: Полная трансляция Figma Constraints (`Left`, `Right`, `Center`, `Stretch`, `Scale`) в Unity Anchors/Offsets.
-- **Stencil Mask Guard**: Автоматический контроль вложенности масок (лимит 3 уровня).
-- **Auto Layout Support**: Полная трансляция Figma Auto Layout в Unity `Horizontal/Vertical Layout Group`.
-- **Non-Destructive Update**: Сохранение ваших скриптов и анимаций при синхронизации.
-
-### 📱 Adaptive Layout (v2.7.0)
-Плагин поддерживает продвинутое масштабирование и перенос констрейнтов:
-- **Enable Constraints Translation**: Автоматический маппинг Figma constraints в анкоры `RectTransform`.
-- **Canvas Scale Mode**: Режим масштабирования (`Scale With Screen Size`) настраивается автоматически.
-- **Match Width or Height**: Интеллектуальный расчет параметра под разрешение фрейма. 
-- **Reference Resolution**: Математически точное определение разрешения из Figma.
+- **Модульная архитектура**: FigmaParser декомпозирован из God Object в 6 фокусированных классов.
+- **API Response Caching**: Кеширование ответов Figma API в `Library/FigmaCache/`. Повторный sync без изменений в Figma — мгновенный.
 
 ---
 
