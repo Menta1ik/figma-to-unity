@@ -35,6 +35,9 @@ namespace FigmaImporter.V2.Core
                         bool allReparented = true;
                         foreach (Transform child in children)
                         {
+                            FigmaParserUtils.EnsureUnpacked(child.gameObject);
+                            FigmaParserUtils.EnsureUnpacked(parent.gameObject);
+                            
                             child.SetParent(parent, true);
                             if (child.parent != parent)
                             {
@@ -93,6 +96,9 @@ namespace FigmaImporter.V2.Core
 
                     var containerGo = new GameObject($"[Mask] {maskGo.name}");
                     var containerRect = containerGo.AddComponent<RectTransform>();
+                    
+                    FigmaParserUtils.EnsureUnpacked(parentTransform.gameObject);
+                    
                     containerGo.transform.SetParent(parentTransform, false);
                     containerGo.transform.SetSiblingIndex(maskSiblingIndex);
 

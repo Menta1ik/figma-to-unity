@@ -64,6 +64,10 @@ namespace FigmaImporter.V2.Core
                 if (cachedElement != null)
                 {
                     element = cachedElement;
+                    
+                    FigmaParserUtils.EnsureUnpacked(element.gameObject);
+                    FigmaParserUtils.EnsureUnpacked(parent.gameObject);
+                    
                     element.transform.SetParent(parent, false);
                     UpdatedCount++;
                 }

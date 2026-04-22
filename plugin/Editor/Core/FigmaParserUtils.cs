@@ -11,11 +11,17 @@ namespace FigmaImporter.V2.Core
         public static void EnsureUnpacked(GameObject go)
         {
             if (go == null) return;
+            
+            // Check if object is part of any prefab instance
             if (PrefabUtility.IsPartOfPrefabInstance(go))
             {
-                var root = PrefabUtility.GetOutermostPrefabInstanceRoot(go);
+                // Get the outermost instance root to safely unpack
+                GameObject root = PrefabUtility.GetNearestPrefabInstanceRoot(go);
                 if (root != null)
+                {
                     PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+                    FigmaLog.Debug($"[Figma Utils] Unpacked prefab instance for: {go.name}");
+                }
             }
         }
     }

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "index.md",
+                "file": "Developer/DEVELOPER_MANUAL.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "index"
+              "title": "DEVELOPER_MANUAL"
             }
           }
         ]
@@ -186,11 +186,13 @@
   },
   "active": "16ed82b04df3841f",
   "lastOpenFiles": [
+    "Developer/DEV_DESIGNER_GUIDE.md",
+    "Developer/DEV_CONCEPTS.md",
+    "index.md",
     "index.md.meta",
     "Developer.meta",
     "CONCEPTS_v3.0.md",
     "IMPROVEMENTS.md.meta",
-    "index.md",
     "IMPROVEMENTS.md",
     "ROADMAP_v2.1_Development.md",
     "CONCEPTS_v2.md",
@@ -204,7 +206,6 @@
     "figma_screens.md",
     "new_screen.json",
     "lobby_final_node.json",
-    "full_figma_structure.json",
-    "lobby_defult_node.json"
+    "full_figma_structure.json"
   ]
 }

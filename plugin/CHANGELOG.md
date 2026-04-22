@@ -5,6 +5,13 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 и проект придерживается [Семантического Версионирования](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.2] - 2026-04-22
+### Исправлено (Critical Prefab Instance Hotfix)
+- **Hardened Unpacking**: `FigmaParserUtils.EnsureUnpacked` теперь гарантированно находит и распаковывает ближайший корень префаб-инстанса.
+- **Mask Dismantle Safety**: Добавлен принудительный анпак детей и родителей при демонтаже масок, что предотвращает ошибки `SetParent is not possible`.
+- **TreeWalker Sync Safety**: `FigmaTreeWalker` теперь освобождает существующие объекты от префаб-связей перед репарентингом.
+- **Deferred Mask Safety**: Исправлено создание контейнеров масок при работе внутри префаб-инстансов.
+
 ## [2.7.1] - 2026-04-22
 ### Исправлено (Core Hardening & Prefab Stability)
 - **Nested Prefab Protection**: `FigmaMaskResolver` теперь проверяет успешность репарентинга при демонтаже масок. Это предотвращает случайное удаление вложенных объектов, заблокированных префаб-инстансом.
