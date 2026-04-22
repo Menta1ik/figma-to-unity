@@ -44,9 +44,8 @@ namespace FigmaImporter.V2.Editor.Diagnostics
                 return;
             }
 
-            try 
+            using (new EditorGUILayout.VerticalScope())
             {
-                EditorGUILayout.BeginVertical();
                 GUILayout.Label($"Figma-to-Unity Pipeline Audit (v{FigmaImporter.Version})", EditorStyles.boldLabel);
                 
                 if (GUILayout.Button("Run Full Audit", GUILayout.Height(30)))
@@ -54,36 +53,34 @@ namespace FigmaImporter.V2.Editor.Diagnostics
                     RunAudit();
                 }
 
-            _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
-            foreach (var result in _results)
-            {
-                DrawResult(result);
-            }
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
-            }
-            catch (System.Exception)
-            {
-                Repaint();
+                using (var scrollScope = new EditorGUILayout.ScrollViewScope(_scrollPos))
+                {
+                    _scrollPos = scrollScope.scrollPosition;
+                    foreach (var result in _results)
+                    {
+                        DrawResult(result);
+                    }
+                }
             }
         }
 
         private void DrawResult(CheckResult result)
         {
-            EditorGUILayout.BeginVertical(GUI.skin.box);
-            EditorGUILayout.BeginHorizontal();
-            
-            var style = new GUIStyle(EditorStyles.boldLabel);
-            style.normal.textColor = result.Color;
-            
-            EditorGUILayout.LabelField($"[{result.Status}] {result.Name}", style);
-            EditorGUILayout.EndHorizontal();
-            
-            if (!string.IsNullOrEmpty(result.Details))
+            using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
-                EditorGUILayout.HelpBox(result.Details, MessageType.None);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    var style = new GUIStyle(EditorStyles.boldLabel);
+                    style.normal.textColor = result.Color;
+                    
+                    EditorGUILayout.LabelField($"[{result.Status}] {result.Name}", style);
+                }
+                
+                if (!string.IsNullOrEmpty(result.Details))
+                {
+                    EditorGUILayout.HelpBox(result.Details, MessageType.None);
+                }
             }
-            EditorGUILayout.EndVertical();
             GUILayout.Space(5);
         }
 

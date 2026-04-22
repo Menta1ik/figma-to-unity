@@ -23,13 +23,11 @@ public class FontMappingTableEditor : Editor
             return;
         }
 
-        try 
-        {
-            serializedObject.Update();
+        serializedObject.Update();
 
-            EditorGUILayout.Space(10);
-            EditorGUILayout.LabelField("🪐 Typography Sync Config", EditorStyles.boldLabel);
-        
+        EditorGUILayout.Space(10);
+        EditorGUILayout.LabelField("🪐 Typography Sync Config", EditorStyles.boldLabel);
+    
         EditorGUILayout.HelpBox("Specify how to replace fonts from Figma.\n" +
                                  "Use the button below to automatically search for assets in the project.", MessageType.Info);
 
@@ -43,22 +41,24 @@ public class FontMappingTableEditor : Editor
         EditorGUILayout.Space(10);
         
         // Global Fallback
-        EditorGUILayout.BeginVertical("helpBox");
-        EditorGUILayout.LabelField("Fallback Font", EditorStyles.miniBoldLabel);
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("GlobalFallbackFont"), new GUIContent("Global Fallback"));
-        EditorGUILayout.EndVertical();
+        using (new EditorGUILayout.VerticalScope("helpBox"))
+        {
+            EditorGUILayout.LabelField("Fallback Font", EditorStyles.miniBoldLabel);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("GlobalFallbackFont"), new GUIContent("Global Fallback"));
+        }
 
         EditorGUILayout.Space(10);
         
         var mappingsProp = serializedObject.FindProperty("Mappings");
         
-        EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField($"Mapping List ({mappingsProp.arraySize})", EditorStyles.boldLabel);
-        if (GUILayout.Button("+ Add New", GUILayout.Width(100)))
+        using (new EditorGUILayout.HorizontalScope())
         {
-            mappingsProp.InsertArrayElementAtIndex(mappingsProp.arraySize);
+            EditorGUILayout.LabelField($"Mapping List ({mappingsProp.arraySize})", EditorStyles.boldLabel);
+            if (GUILayout.Button("+ Add New", GUILayout.Width(100)))
+            {
+                mappingsProp.InsertArrayElementAtIndex(mappingsProp.arraySize);
+            }
         }
-        EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.Space(5);
 
@@ -72,43 +72,36 @@ public class FontMappingTableEditor : Editor
             // Сбрасываем отступ, чтобы не было "лестницы"
             EditorGUI.indentLevel = 0;
 
-            EditorGUILayout.BeginVertical(GUI.skin.box);
-            
-            // Заголовок элемента
-            EditorGUILayout.BeginHorizontal();
-            var assetProp = element.FindPropertyRelative("targetTMPAsset");
-            string title = assetProp.objectReferenceValue != null ? 
-                $"[{i}] {assetProp.objectReferenceValue.name}" : $"[{i}] New Mapping";
-            
-            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
-            
-            if (GUILayout.Button("×", GUILayout.Width(25)))
+            using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
-                mappingsProp.DeleteArrayElementAtIndex(i);
-                EditorGUILayout.EndHorizontal();
-                EditorGUILayout.EndVertical();
-                break; 
+                // Заголовок элемента
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    var assetProp = element.FindPropertyRelative("targetTMPAsset");
+                    string title = assetProp.objectReferenceValue != null ? 
+                        $"[{i}] {assetProp.objectReferenceValue.name}" : $"[{i}] New Mapping";
+                    
+                    EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+                    
+                    if (GUILayout.Button("×", GUILayout.Width(25)))
+                    {
+                        mappingsProp.DeleteArrayElementAtIndex(i);
+                        break; 
+                    }
+                }
+
+                // Поля ввода без дополнительного отступа
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("fontPostScriptName"), new GUIContent("PostScript Name (Optional)"));
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("figmaFontFamily"), new GUIContent("Figma Font Family"));
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("figmaFontWeight"), new GUIContent("Figma Font Weight (0=Any)"));
+                
+                EditorGUILayout.Space(5);
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("targetTMPAsset"), new GUIContent("→ Unity TMP Asset"));
             }
-            EditorGUILayout.EndHorizontal();
-
-            // Поля ввода без дополнительного отступа
-            EditorGUILayout.PropertyField(element.FindPropertyRelative("fontPostScriptName"), new GUIContent("PostScript Name (Optional)"));
-            EditorGUILayout.PropertyField(element.FindPropertyRelative("figmaFontFamily"), new GUIContent("Figma Font Family"));
-            EditorGUILayout.PropertyField(element.FindPropertyRelative("figmaFontWeight"), new GUIContent("Figma Font Weight (0=Any)"));
-            
-            EditorGUILayout.Space(5);
-            EditorGUILayout.PropertyField(assetProp, new GUIContent("→ Unity TMP Asset"));
-
-            EditorGUILayout.EndVertical();
             EditorGUILayout.Space(2);
         }
 
-            serializedObject.ApplyModifiedProperties();
-        }
-        catch (System.Exception)
-        {
-            Repaint();
-        }
+        serializedObject.ApplyModifiedProperties();
     }
 
     private void AutoScanFonts()

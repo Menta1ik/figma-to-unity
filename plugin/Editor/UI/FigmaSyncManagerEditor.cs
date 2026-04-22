@@ -23,9 +23,7 @@ namespace FigmaImporter.V2.UI
                 return;
             }
 
-            try 
-            {
-                base.OnInspectorGUI();
+            base.OnInspectorGUI();
 
             FigmaSyncManager manager = (FigmaSyncManager)target;
 
@@ -44,11 +42,6 @@ namespace FigmaImporter.V2.UI
             if (GUILayout.Button("🧹 Очистить дочерние объекты (Сбросить кеш)"))
             {
                 EditorApplication.delayCall += () => ClearChildren(manager.transform);
-            }
-            }
-            catch (System.Exception)
-            {
-                Repaint();
             }
         }
 
