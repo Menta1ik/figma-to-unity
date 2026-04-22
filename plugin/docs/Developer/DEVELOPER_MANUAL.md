@@ -34,6 +34,25 @@
     *   `Preserve Unity Names`: Если включено, плагин не будет менять имена объектов, которые вы переименовали вручную в Unity.
     *   `Preserve Manual Components`: Если включено, плагин не будет удалять компоненты (скрипты, анимации), добавленные вами поверх импортированных объектов.
 
+### Б. Логирование (Logging)
+*   `Log Level`: Управляет объёмом вывода в Console Unity.
+    *   `Silent` — никаких логов.
+    *   `Minimal` (по умолчанию) — только вехи: начало/конец синхронизации, итоги, ошибки.
+    *   `Verbose` — детальный вывод по каждой ноде.
+
+### В. Экспорт изображений (Image Export)
+*   `Image Export Scale`: Коэффициент масштабирования при загрузке изображений (0.5–4x, по умолчанию **2x**). В v2.8.0 этот параметр используется совместно с **Batching Engine** для стабильной загрузки.
+
+### Г. Адаптивность (Adaptive Layout)
+*   `Enable Constraints Translation`: Перевод "Constraints" из Figma в анкоры Unity.
+*   `Canvas Scale Mode`: Тип компонента `CanvasScaler` (Constant Pixel Size или Scale With ScreenSize).
+*   `Reference Resolution`: Дизайнерское разрешение (например, 1920x1080).
+*   `Match Width or Height`: Баланс масштабирования (0 — ширина, 1 — высота).
+
+### Д. FontMappingTable (Таблица шрифтов)
+1.  Нажмите правую кнопку мыши -> **Create -> Figma Importer -> Font Mapping Table**.
+2.  Этот ассет связывает имена шрифтов из Figma с вашими ассетами **TextMeshPro SDF**.
+
 ---
 
 ## 🖥 3. Работа с окном Figma Importer
@@ -41,74 +60,87 @@
 Откройте окно через меню: **Window -> Figma Importer -> Dashboard**.
 
 ### Блок 1: Connection & Config (Связь)
-*   **Use Local JSON (Offline Mode)**: *Новое в v2.8.0*. При включении плагин игнорирует API и загружает данные из файла `Assets/lobby_figma.json`. Полезно при отсутствии интернета.
+*   **Use Local JSON (Offline Mode)**: *Новое в v2.8.0*. Загрузка данных из `Assets/lobby_figma.json` без интернета.
 *   **Figma URL / File ID**: Вставьте полную ссылку на макет Figma или его ID.
-*   **Single Node ID**: (Опционально) Если вам нужно обновить только один экран — выделите его в Figma, нажмите правой кнопкой -> **Copy link** и вставьте сюда.
-*   **Access Token (PAT)**: Ваш персональный токен Figma. Токен хранится в `SessionState` — он переживает перезагрузку домена, но не сохраняется на диск.
+*   **Single Node ID**: (Опционально) ID конкретной ноды для частичного импорта.
+*   **Access Token (PAT)**: Ваш персональный токен Figma.
+*   **Importer Settings**: Перетащите сюда ассет настроек из Шага 2А.
 
-### Блок 2: Sync & Generate (Запуск)
+### Блок 2: Resources & Target (Ресурсы)
+*   **Font Mapping**: Перетащите сюда таблицу шрифтов из Шага 2Д.
+*   **Кнопка [Font Audit]**: Сканирование Figma-файла на наличие шрифтов.
+*   **Root Canvas**: Объект **Canvas** из вашей сцены, где будет строиться UI.
+
+### Блок 3: Sync & Generate (Запуск)
 *   **Sync Images**: Включает/выключает скачивание картинок.
-*   **Force Update**: Если включено, плагин полностью пересоберет сцену с нуля, игнорируя кэши.
-*   **Кнопка [🚀 RUN FULL SYNC]**: Запускает процесс синхронизации. 
+*   **Force Update**: Полная пересборка сцены с нуля.
+*   **Кнопка [🚀 RUN FULL SYNC]**: Запускает процесс.
 
 ---
 
 ## 🏗 4. Внутренняя архитектура (v2.8.0)
 
-В версии **v2.8.0** мы провели консолидацию оркестратора («Single Brain»), что сделало работу плагина предсказуемой во всех режимах.
+В версии **v2.8.0** логика централизована в `FigmaParser` («Single Brain»).
 
 | Класс | Ответственность |
 | :--- | :--- |
-| `FigmaParser` | **Центральный Оркестратор**. Управляет кэшем, API, TreeWalker и Image Service. |
-| `ImageSyncService` | **Batching Engine**. Разбивает запросы на порции по 25 штук, обходя ошибку 414. |
-| `FigmaTreeWalker` | Обход дерева нод и создание GameObjects. |
-| `FigmaAPIClient` | Сетевая логика с расширенной диагностикой ошибок (401, 404, 414). |
-| `FigmaResponseCache` | Кэширование ответов API в папке `Library/FigmaCache/`. |
+| `FigmaParser` | **Оркестратор**. Управляет кэшем, API, TreeWalker и Image Service. |
+| `ImageSyncService` | **Batching Engine**. Разбивает запросы на порции по 25 штук (Fix 414 error). |
+| `FigmaTreeWalker` | Рекурсивный обход дерева нод и создание GameObjects. |
+| `FigmaMaskResolver` | Жизненный цикл масок: DismantleAll → ApplyDeferred. |
+| `FigmaAPIClient` | Сетевая логика с диагностикой (401, 404, 414). |
+
+### Stencil Guard & Hierarchy Flattening
+*   **DismantleAllMaskContainers**: Разбор технических контейнеров `[Mask]` перед импортом.
+*   **Stencil Depth Tracking**: При глубине > 3 маска переключается на `RectMask2D`.
 
 ---
 
-## ⚡ 5. Ключевые технологии v2.8.0
+## 🏷 5. Подготовка макета в Figma (Маркеры)
 
-### Batching Engine (Защита от ошибки 414)
-Если в вашем макете 200+ изображений, стандартный запрос к API Figma упадет с ошибкой "URI Too Long". В v2.8.0 плагин автоматически разбивает запрос ссылок на части по 25 нод, что гарантирует успешный импорт макетов любого масштаба.
+Чтобы автоматизировать создание компонентов, добавляйте суффиксы к названиям слоев:
 
-### Improved API Diagnostics
-Больше никаких "пустых сцен" без объяснения причин. Если API вернуло ошибку (неверный токен, удаленный файл или слишком длинный URL), вы увидите подробное сообщение в консоли Unity с кодом ошибки и ссылкой на документацию.
-
-### Offline Mode
-Теперь вы можете работать полностью автономно. Просто положите JSON-ответ от Figma в `Assets/lobby_figma.json`, включите галочку в окне импорта, и плагин соберет UI без единого сетевого запроса.
+| Маркер | Результат в Unity |
+| :--- | :--- |
+| `[Btn]` | Добавит компонент **Button** и настроит Raycast Target. |
+| `[Input]` | Добавит компонент **TMP_InputField**. |
+| `[Scroll]` | Создаст структуру **ScrollRect**. |
+| `[Toggle]` | Добавит компонент **Toggle**. |
+| `_9slice` | (В конце имени картинки) Настроит **9-Slice** границы. |
 
 ---
 
-## 🏗 6. Stencil Guard & Hierarchy Flattening
+## 🔍 6. Диагностика и проверка состояния (Health Check)
 
-*   **FigmaMaskResolver.DismantleAll**: Находит технические контейнеры `[Mask]` и возвращает их содержимое в основной поток иерархии перед каждым импортом.
-*   **Stencil Depth Tracking**: При глубине вложенности масок > 3 плагин автоматически переключается на `RectMask2D`, предотвращая ошибку Unity `stencil mask depth > 8`.
+Инструмент автоматического аудита пайплайна.
+1. Меню: **Figma Importer -> Diagnostics -> Health Check**.
+2. Нажмите **Run Full Audit**.
+3. Проверяет: Asmdef, Font Validation, Auto Layout Translator, Soft-Delete.
 
 ---
 
 ## 🧪 7. Тестирование и контроль качества
 
-Для обеспечения стабильности используется система автоматизированного тестирования на базе **Unity Test Framework (NUnit)**.
+Для стабильности используется 58 тестов на базе **Unity Test Framework**.
 
-### Как запустить тесты:
-1.  В Unity откройте окно: **Window -> General -> Test Runner**.
-2.  Переключитесь на вкладку **EditMode**.
-3.  Нажмите **Run All**.
-4.  В версии **2.8.0** все 58 тестов (включая новые Decomposition & Cache тесты) должны быть зелеными.
+| Файл | Тестов | Покрытие |
+| :--- | :---: | :--- |
+| `HandlerTests.cs` | 11 | Основные хендлеры и OrphanManager. |
+| `AdaptiveLayoutTests.cs` | 4 | TransformHandler и TreeWalker context. |
+| `DecompositionTests.cs` | 20 | TreeWalker, MaskResolver, OrphanManager. |
+| `CacheTests.cs` | 7 | FigmaResponseCache round-trip и очистка. |
 
 ---
 
 ## 🆘 8. Решение проблем (Troubleshooting)
 
-### Ошибка [Figma API Error] 414 URI Too Long:
+### Ошибка 414 URI Too Long:
 *   Обновитесь до версии **2.8.0**. Проблема решена через Batching Engine.
 
-### Сцена пустая после импорта:
-1.  **Проверьте консоль**: Теперь там точно есть причина (например, `[FigmaParser] No valid nodes found`).
-2.  **Clear Cache**: Если вы вносили правки в Figma, но они не подтянулись — нажмите кнопку **Clear Cache** в окне импорта.
-3.  **Node ID**: Убедитесь, что ID ноды указан верно (формат `12:345`).
+### Сцена пустая:
+1. **Проверьте консоль**: Теперь там есть логи `[Figma API Error]` или `[FigmaParser] No valid nodes found`.
+2. **Clear Cache**: Нажмите кнопку Clear Cache в окне импорта.
 
 ---
 **BrainySoftware OU © 2026**
-**Версия документа:** 2.8.0 (Stability Release)
+**Версия документа:** 2.8.0 (Production Stability)
