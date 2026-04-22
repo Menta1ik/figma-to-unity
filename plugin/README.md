@@ -1,4 +1,4 @@
-# Figma Importer v2.6.0 (UPM)
+# Figma Importer v2.7.0 (UPM)
 
 Мощный инструмент для профессионального импорта UI из Figma в Unity с поддержкой **Smart Sync**, автоматизацией префабов и неразрушающим обновлением.
 
@@ -12,7 +12,7 @@ This package is designed for the **Unity Package Manager (UPM)**.
 1. Open your Unity project.
 2. Go to `Window -> Package Manager`.
 3. Click `+` -> **"Add package from git URL..."**.
-4. Paste: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.6.0`
+4. Paste: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.7.0`
 
 ### Option B: Local Disk
 Select the `package.json` file inside the `plugin` folder.
@@ -34,12 +34,21 @@ Select the `package.json` file inside the `plugin` folder.
 
 ---
 
-## 🛠 New in v2.6.0
-*   **Metadata Unblock**: Исправлен .gitignore, блокировавший загрузку .meta файлов.
-*   **Logging System (FigmaLog)**: Централизованное управление логами. Три уровня: `Silent`, `Minimal`, `Verbose`. Настраивается в `FigmaImporterSettings`.
-*   **Configurable Image Scale**: Слайдер `Image Export Scale` (0.5–4x, default 2x) в настройках и в окне импортера.
-*   **Fill Container (layoutGrow)**: Элементы с "Fill Container" в Figma Auto Layout автоматически получают `LayoutElement.flexibleWidth/Height` в Unity.
-*   **Token Security**: Access Token хранится в `SessionState` — безопасно переживает перезагрузку домена.
+## 🛠 New in v2.7.0 — Architecture Decomposition & API Caching
+
+*   **Modular Architecture**: FigmaParser decomposed from God Object (647 lines) into 6 focused classes (-45% code). Single responsibility per class.
+    *   `FigmaTreeWalker` — recursive node sync and hierarchy building
+    *   `FigmaMaskResolver` — mask container lifecycle (dismantle/apply/cleanup)
+    *   `FigmaOrphanManager` — deleted element detection
+    *   `FigmaFontAuditor` — font mapping audit
+    *   `FigmaParserUtils` — shared utilities
+*   **API Response Caching**: File-based cache in `Library/FigmaCache/`. Version-aware — skips full API download when Figma file unchanged. Instant re-sync on cache hit.
+*   **Centralized Version**: Single `FigmaImporter.Version` constant replaces 15+ hardcoded version strings.
+*   **58 Unit Tests**: Coverage grew +87% (was 31). All tests migrated from reflection to direct calls.
+*   **Working Clear Cache Button**: Actually clears API response cache from UI (was a stub).
+
+### Previous (v2.6.0)
+*   Metadata Unblock (.gitignore fix), Logging System (FigmaLog), Configurable Image Scale, Fill Container, Token Security.
 
 ### Previous (v2.5.0)
 *   Service-Oriented Architecture, Icon Detection Cache, Deep Diagnostics, Unit Tests.

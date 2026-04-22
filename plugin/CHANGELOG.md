@@ -5,6 +5,33 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 и проект придерживается [Семантического Версионирования](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-04-22
+### Добавлено (Architecture Decomposition & API Caching)
+- **Модульная архитектура**: FigmaParser декомпозирован из God Object (647 строк) в тонкий оркестратор (356 строк, -45%).
+  - `FigmaTreeWalker` — рекурсивный обход дерева нод и построение иерархии
+  - `FigmaMaskResolver` — жизненный цикл масок (dismantle/apply/cleanup)
+  - `FigmaOrphanManager` — детекция и маркировка удалённых элементов
+  - `FigmaFontAuditor` — аудит шрифтов против FontMappingTable
+  - `FigmaParserUtils` — общие утилиты (unpack prefab)
+- **API Response Caching**: Файловый кеш в `Library/FigmaCache/`. Перед полным запросом — лёгкий `?fields=version` чек. При совпадении версии — мгновенный кеш-хит.
+  - `FigmaResponseCache` — сервис кеширования (save/load/clear)
+  - `FigmaAPIClient.GetFileVersionAsync` — легковесная проверка версии файла
+- **Централизованная версия**: Единая константа `FigmaImporter.Version` заменяет 15+ хардкод-строк. `FigmaLog.VersionPrefix` для логов.
+- **Кнопка Clear Cache**: Реально работающая очистка кеша из UI (раньше был заглушка).
+
+### Тесты
+- **58 юнит-тестов** (было 31, +87%):
+  - `DecompositionTests.cs` — 20 тестов для всех извлечённых классов
+  - `CacheTests.cs` — 7 тестов для кеша (round-trip, инвалидация, очистка)
+- Все тесты переведены с рефлексии на прямые вызовы
+- `InternalsVisibleTo` для доступа тестов к internal классам
+
+### Изменено
+- `FigmaParser.cs` — тонкий оркестратор, делегирует работу новым классам
+- `FigmaAPIClient.cs` — добавлен `GetFileVersionAsync()`, рабочий `ClearLocalCache()`
+- `HandlerTests.cs`, `AdaptiveLayoutTests.cs` — без рефлексии, прямые вызовы
+- `FigmaImporterWindow.cs` — версия через `FigmaImporter.Version`, рабочая кнопка кеша
+
 ## [2.6.0] - 2026-04-20
 ### Добавлено (Metadata Unblock Edition)
 - **UNBLOCK METADATA**: Исправлен .gitignore, блокировавший загрузку критических .meta файлов в Unity, что приводило к потере связей при установке через Git.

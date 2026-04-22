@@ -1,4 +1,4 @@
-# 📖 Полное руководство разработчика: Figma Importer v2.6.0
+# 📖 Полное руководство разработчика: Figma Importer v2.7.0
 
 Данное руководство содержит исчерпывающую информацию по настройке и эксплуатации системы импорта UI из Figma в Unity uGUI. 
 
@@ -15,7 +15,7 @@
 ### Шаги по установке через Git:
 1.  Откройте **Window -> Package Manager**.
 2.  Нажмите кнопку **+** (Add) и выберите **Add package from git URL...**.
-3.  Вставьте строку: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.6.0`
+3.  Вставьте строку: `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.7.0`
 4.  Нажмите **Add**. Unity загрузит плагин и автоматически добавит зависимости (Newtonsoft JSON).
 
 ---
@@ -87,14 +87,38 @@
 
 ---
 
-## 🏗 4. Внутренняя архитектура и стабильность (v2.4+)
+## 🏗 4. Внутренняя архитектура (v2.7.0)
 
-Начиная с версии **2.5.2**, в плагине реализована система **Stencil Guard**, предназначенная для предотвращения критических ошибок Unity `stencil mask depth > 8`.
+### Модульная архитектура (v2.7.0)
 
-### Основные компоненты v2.4:
-*   **FigmaParser (Orchestrator)**: Теперь включает логику агрессивного «разглаживания» (flattening) иерархии перед каждым импортом.
-*   **Stencil Guard**: Мониторит глубину вложенности масок. При достижении лимита (3 уровня) система автоматически переключает тип маски на `RectMask2D`, что гарантирует работоспособность UI даже в экстремально сложных макетах.
-*   **Aggressive Flattening**: Логика `DismantleAllMaskContainers` находит все старые технические контейнеры `[Mask]` и переносит их содержимое обратно в основной поток иерархии перед началом синхронизации. Это обеспечивает идемпотентность процесса (результаты повторных импортов идентичны).
+Начиная с v2.7.0, `FigmaParser` — тонкий оркестратор, делегирующий работу фокусированным классам:
+
+| Класс | Ответственность |
+| :--- | :--- |
+| `FigmaParser` | Оркестрация: fetch API → TreeWalker → MaskResolver → OrphanManager → ImageService → PrefabManager |
+| `FigmaTreeWalker` | Рекурсивный обход дерева нод, создание/обновление GameObjects |
+| `FigmaMaskResolver` | Жизненный цикл масок: DismantleAll → ApplyDeferred → CleanupOrphaned |
+| `FigmaOrphanManager` | Детекция элементов, удалённых в Figma, маркировка как orphan |
+| `FigmaFontAuditor` | Аудит шрифтов: сбор из файла, сравнение с FontMappingTable |
+| `FigmaParserUtils` | Общие утилиты (EnsureUnpacked для префабов) |
+
+### API Response Caching (v2.7.0)
+
+Кеш хранится в `Library/FigmaCache/` (стандартная Unity-конвенция, gitignored).
+
+**Алгоритм:**
+1. `GetFileVersionAsync()` — лёгкий запрос `?fields=version` к Figma API
+2. Сравнение с сохранённой версией в кеше
+3. **Cache HIT** → мгновенное использование сохранённого JSON (без сетевого запроса)
+4. **Cache MISS** → полный запрос + сохранение в кеш для следующего раза
+
+**Очистка**: кнопка **Clear Cache** в UI или `FigmaAPIClient.ClearLocalCache()` из кода.
+
+### Stencil Guard (v2.5.2+)
+
+*   **FigmaMaskResolver.DismantleAll**: Находит технические контейнеры `[Mask]` и возвращает их содержимое в основной поток иерархии.
+*   **Stencil Depth Tracking**: При глубине вложенности > 3 маска переключается на `RectMask2D`.
+*   **Aggressive Flattening**: Обеспечивает идемпотентность повторных импортов.
 
 ### Оптимизация производительности:
 Для ускорения работы с огромными макетами используется система **IconCandidateCache**, минимизирующая рекурсивные проверки в `ImageHandler`.
@@ -163,11 +187,17 @@
 ### Расположение тестов:
 Все тесты находятся в папке: `plugin/Editor/Tests/`.
 
-### Основные тестовые наборы:
-*   **HandlerTests.cs**: Проверяет логику обработки отдельных элементов (текст, изображения, кнопки).
-*   **AdaptiveLayoutTests.cs**: Тестирует корректность маппинга констрейнтов в анкоры и работу `CanvasScaler`.
-*   **ConstraintsMappingTests.cs**: (Новое в v2.5.2) Глубокая проверка всех математических комбинаций Figma Constraints.
-*   **FigmaImportTestRunner.cs**: Интеграционные тесты для проверки процесса сборки иерархии.
+### Тестовые наборы (58 тестов):
+
+| Файл | Тестов | Покрытие |
+| :--- | :---: | :--- |
+| `HandlerTests.cs` | 11 | LayoutHandler, TextHandler, ImageHandler, ReskinHandler, OrphanManager, MaskResolver |
+| `AdaptiveLayoutTests.cs` | 4 | TransformHandler (stretch, scale, auto-layout), TreeWalker (context) |
+| `ConstraintsMappingTests.cs` | 2 | Математические комбинации Figma Constraints |
+| `FigmaImporterV241Tests.cs` | 14 | LayoutHandler, OrphanedElement, FigmaNode defaults, версия |
+| `DecompositionTests.cs` | 20 | **(NEW v2.7.0)** TreeWalker, MaskResolver, OrphanManager, FontAuditor, ParserUtils |
+| `CacheTests.cs` | 7 | **(NEW v2.7.0)** FigmaResponseCache round-trip, инвалидация, очистка |
+| `FigmaImportTestRunner.cs` | — | Интерактивный тест (не NUnit) |
 
 ### Как запустить тесты:
 1.  В Unity откройте окно: **Window -> General -> Test Runner**.
