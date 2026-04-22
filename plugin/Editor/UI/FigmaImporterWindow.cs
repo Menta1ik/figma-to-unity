@@ -73,9 +73,13 @@ namespace FigmaImporter.V2.UI
 
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField($"🚀 Antigravity Figma Importer v{FigmaImporter.Version}", EditorStyles.boldLabel);
-            
-            // --- SECTION 1: CONNECTION ---
-            EditorGUILayout.BeginVertical("box");
+
+                if (GUILayout.Button("🔄 Update Plugin to Latest (GitHub)"))
+                {
+                    UpdatePlugin();
+                }
+
+                // --- SECTION 1: CONNECTION ---            EditorGUILayout.BeginVertical("box");
             EditorGUILayout.LabelField("Step 1: Connection & Config", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox("Provide the Figma URL or File ID. The plugin will automatically extract the Node ID. The Access Token (PAT) is from your Figma account settings.", MessageType.None);
             
@@ -445,6 +449,15 @@ namespace FigmaImporter.V2.UI
                 return match.Groups[1].Value.Replace("-", ":");
             }
             return "";
+        }
+
+        private void UpdatePlugin()
+        {
+            if (EditorUtility.DisplayDialog("Figma Importer Update", "This will fetch the latest version from GitHub. Unity will reload and recompile.", "Update Now", "Cancel"))
+            {
+                UnityEditor.PackageManager.Client.Add("https://github.com/Menta1ik/figma-to-unity.git?path=/plugin");
+                FigmaLog.Info("[FigmaImporter] Requesting update from GitHub... Please wait.");
+            }
         }
     }
 }
