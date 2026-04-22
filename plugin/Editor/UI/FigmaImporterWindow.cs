@@ -456,10 +456,12 @@ namespace FigmaImporter.V2.UI
 
         private void UpdatePlugin()
         {
-            if (EditorUtility.DisplayDialog("Figma Importer Update", "This will fetch the latest version from GitHub. Unity will reload and recompile.", "Update Now", "Cancel"))
+            if (EditorUtility.DisplayDialog("Figma Importer Update", "This will fetch the latest version from GitHub (main branch). Unity will reload and recompile.", "Update Now", "Cancel"))
             {
-                UnityEditor.PackageManager.Client.Add("https://github.com/Menta1ik/figma-to-unity.git?path=plugin");
-                FigmaLog.Info("[FigmaImporter] Requesting update from GitHub... Please wait.");
+                // Unity requires the leading slash in ?path=/folder
+                // We add #main to ensure it pulls the latest commit, not a cached tag
+                UnityEditor.PackageManager.Client.Add("https://github.com/Menta1ik/figma-to-unity.git?path=/plugin#main");
+                FigmaLog.Info("[FigmaImporter] Requesting update from GitHub (main branch)... Please wait.");
             }
         }
     }
