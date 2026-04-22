@@ -207,14 +207,14 @@ namespace FigmaImporter.V2.Core
                 FigmaMaskResolver.CleanupOrphaned(rootCanvas);
                 _auditReport.PrintReport();
 
+                ApplyCanvasScaler(rootCanvas);
+                Canvas.ForceUpdateCanvases();
+
                 if (DownloadImages && _handlerContext.ImageNodesToDownload.Count > 0)
                 {
                     var imageService = new ImageSyncService(_accessToken, _fileId, Settings);
                     await imageService.SyncImagesAsync(rootCanvas.name, _handlerContext, _sessionCache, onProgress, ct);
                 }
-
-                ApplyCanvasScaler(rootCanvas);
-                Canvas.ForceUpdateCanvases();
             }
             finally
             {
