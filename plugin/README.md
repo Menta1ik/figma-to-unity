@@ -1,4 +1,4 @@
-# Antigravity Figma Importer v2.7.7 (UPM)
+# Antigravity Figma Importer v2.7.8 (UPM)
 
 Мощный инструмент для профессионального импорта UI из Figma в Unity с поддержкой **Smart Sync**, автоматизацией префабов и неразрушающим обновлением.
 
@@ -12,7 +12,7 @@
 1. Откройте ваш проект Unity.
 2. Перейдите в `Window -> Package Manager`.
 3. Нажмите `+` -> **"Add package from git URL..."**.
-4. Вставьте ссылку: `https://github.com/Menta1ik/figma-to-unity.git?path=/plugin#v2.7.7`
+4. Вставьте ссылку: `https://github.com/Menta1ik/figma-to-unity.git?path=/plugin#v2.7.8`
 
 ### Вариант B: Локальная установка
 Выберите файл `package.json` внутри папки `plugin`.
@@ -34,7 +34,7 @@
 
 ---
 
-## 🛠 Новое в v2.7.7 — UI Stability & UPM Fix
+## 🛠 Новое в v2.7.8 — UI Stability & UPM Fix
 
 *   **Полная стабилизация IMGUI**: Ошибки `Invalid GUILayout state` устранены во всех редакторских окнах через внедрение Scopes (`VerticalScope`, `HorizontalScope`, `ScrollViewScope`).
 *   **Исправлен авто-апдейт**: Метод обновления плагина в один клик теперь корректно находит директорию пакета в GitHub.

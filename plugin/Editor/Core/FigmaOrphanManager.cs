@@ -9,14 +9,19 @@ namespace FigmaImporter.V2.Core
     /// </summary>
     internal static class FigmaOrphanManager
     {
-        public static void MarkOrphans(Dictionary<string, FigmaElement> existingCache, HashSet<string> processedIds)
+        public static void MarkOrphans(Dictionary<string, FigmaElement> existingCache, HashSet<string> processedIds, bool isSingleNodeSync)
         {
-            if (existingCache == null) return;
+            if (existingCache == null || isSingleNodeSync) return; // SAFETY: Never mark orphans if we only synced a sub-tree
+            
             foreach (var kvp in existingCache)
             {
                 if (!processedIds.Contains(kvp.Key) && kvp.Value != null)
                 {
                     GameObject go = kvp.Value.gameObject;
+                    
+                    // Don't mark root as orphan
+                    if (go.transform.parent == null) continue;
+
                     go.SetActive(false);
                     var orphan = go.GetComponent<FigmaOrphanedElement>() ?? go.AddComponent<FigmaOrphanedElement>();
                     orphan.Initialize(kvp.Key);

@@ -223,7 +223,8 @@ namespace FigmaImporter.V2.Core
                 EditorUtility.ClearProgressBar();
             }
 
-            FigmaOrphanManager.MarkOrphans(_existingCache, _processedIds);
+            bool isSingleNodeSync = response.nodes != null && response.nodes.Count > 0;
+            FigmaOrphanManager.MarkOrphans(_existingCache, _processedIds, isSingleNodeSync);
             FigmaMaskResolver.CleanupOrphaned(rootCanvas);
 
             if (Settings != null && !string.IsNullOrEmpty(Settings.basePrefabsPath))
