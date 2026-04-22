@@ -1,4 +1,4 @@
-# 🌌 Figma to Unity Importer v2.7.0
+# 🌌 Figma to Unity Importer v2.7.1
 
 **Figma-to-Unity Pipeline** — профессиональный инструмент для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity uGUI. Плагин использует неразрушающую архитектуру **Smart Sync**, позволяя обновлять UI из Figma без потери ваших изменений (скриптов, анимаций) в Unity.
 
@@ -11,7 +11,7 @@
 1. Откройте **Window -> Package Manager** в Unity.
 2. Нажмите **+** -> **Add package from git URL...**.
 3. Вставьте ссылку:
-   `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.7.0`
+   `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.7.1`
 
 ---
 
