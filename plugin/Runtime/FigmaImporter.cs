@@ -9,6 +9,6 @@ namespace FigmaImporter.V2
         /// Current version of the plugin.
         /// Matches plugin/package.json
         /// </summary>
-        public const string Version = "2.8.0";
+        public const string Version = "2.8.1";
     }
 }

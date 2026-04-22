@@ -40,18 +40,38 @@ namespace FigmaImporter.V2.Core.Services
             
             float scale = _settings != null ? _settings.ImageExportScale : 2f;
             
-            // Fix: Batch requests to avoid 414 URI Too Long error
+            // Fix: Batch requests to avoid 414 URI Too Long error and use parallelism for speed
             Dictionary<string, string> links = new Dictionary<string, string>();
-            int batchSize = 25; // Safe size for URLs
-            for (int i = 0; i < nodeIds.Count; i += batchSize)
+            int batchSize = 100; 
+            var batchTasks = new List<Task<Dictionary<string, string>>>();
+            
+            using (var batchSemaphore = new SemaphoreSlim(5)) // Limit concurrent API calls
             {
-                var batch = nodeIds.GetRange(i, Math.Min(batchSize, nodeIds.Count - i));
-                FigmaLog.Info($"{FigmaLog.VersionPrefix}Requesting image batch {i / batchSize + 1} ({batch.Count} nodes)...");
-                
-                var batchLinks = await apiClient.GetImageLinksAsync(_fileId, batch, scale, "png", ct);
-                if (batchLinks != null)
+                for (int i = 0; i < nodeIds.Count; i += batchSize)
                 {
-                    foreach (var kv in batchLinks) links[kv.Key] = kv.Value;
+                    var batch = nodeIds.GetRange(i, Math.Min(batchSize, nodeIds.Count - i));
+                    int batchIndex = i / batchSize + 1;
+                    int totalBatches = (nodeIds.Count + batchSize - 1) / batchSize;
+
+                    batchTasks.Add(Task.Run(async () => 
+                    {
+                        await batchSemaphore.WaitAsync(ct);
+                        try 
+                        {
+                            FigmaLog.Info($"{FigmaLog.VersionPrefix}Requesting image batch {batchIndex}/{totalBatches} ({batch.Count} nodes)...");
+                            return await apiClient.GetImageLinksAsync(_fileId, batch, scale, "png", ct);
+                        }
+                        finally { batchSemaphore.Release(); }
+                    }));
+                }
+
+                var resultsLinks = await Task.WhenAll(batchTasks);
+                foreach (var result in resultsLinks)
+                {
+                    if (result != null)
+                    {
+                        foreach (var kv in result) links[kv.Key] = kv.Value;
+                    }
                 }
             }
 
