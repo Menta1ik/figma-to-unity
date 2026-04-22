@@ -53,7 +53,8 @@ namespace FigmaImporter.V2.Core.Services
                     int batchIndex = i / batchSize + 1;
                     int totalBatches = (nodeIds.Count + batchSize - 1) / batchSize;
 
-                    batchTasks.Add(Task.Run(async () => 
+                    // Execute batch as an async task on the Main Thread
+                    async Task<Dictionary<string, string>> FetchBatchAsync()
                     {
                         await batchSemaphore.WaitAsync(ct);
                         try 
@@ -62,7 +63,9 @@ namespace FigmaImporter.V2.Core.Services
                             return await apiClient.GetImageLinksAsync(_fileId, batch, scale, "png", ct);
                         }
                         finally { batchSemaphore.Release(); }
-                    }));
+                    }
+                    
+                    batchTasks.Add(FetchBatchAsync());
                 }
 
                 var resultsLinks = await Task.WhenAll(batchTasks);

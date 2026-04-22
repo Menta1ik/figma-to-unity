@@ -1,6 +1,6 @@
 {
   "name": "com.figmaimporter.v2",
-  "version": "2.8.1",
+  "version": "2.8.2",
   "displayName": "Figma Importer V2",
   "description": "Figma to Unity UI Pipeline with Non-Destructive Update architecture. Modular parser, API response caching.",
   "unity": "2021.3",
