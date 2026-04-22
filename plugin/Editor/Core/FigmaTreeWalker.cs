@@ -42,17 +42,22 @@ namespace FigmaImporter.V2.Core
 
         public void SyncAll(List<FigmaNode> topNodes, Transform root, Action<int, int, string> onProgress, CancellationToken ct)
         {
+            FigmaLog.Info($"{FigmaLog.VersionPrefix}TreeWalker: Starting sync for {topNodes.Count} top nodes.");
             int total = 0;
             foreach (var n in topNodes) total += CountNodes(n);
-            int current = 0;
+            FigmaLog.Info($"{FigmaLog.VersionPrefix}TreeWalker: Total nodes found in JSON: {total}");
 
+            int current = 0;
             foreach (var node in topNodes)
                 SyncRecursive(node, root, root.name, ref current, total, onProgress, ct, 0);
+            
+            FigmaLog.Info($"{FigmaLog.VersionPrefix}TreeWalker: Sync finished. Created: {CreatedCount}, Updated: {UpdatedCount}");
         }
 
         private void SyncRecursive(FigmaNode node, Transform parent, string path, ref int current, int total, Action<int, int, string> onProgress, CancellationToken ct, int depth)
         {
             if (node == null) return;
+            // FigmaLog.Verbose($"{FigmaLog.VersionPrefix}Processing node: {node.name} ({node.id}) at depth {depth}");
             ct.ThrowIfCancellationRequested();
 
             current++;

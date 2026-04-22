@@ -39,10 +39,30 @@ namespace FigmaImporter.V2.Core.Services
             var nodeIds = context.ImageNodesToDownload.Select(n => n.id).ToList();
             
             float scale = _settings != null ? _settings.ImageExportScale : 2f;
-            var links = await apiClient.GetImageLinksAsync(_fileId, nodeIds, scale, "png", ct);
-            if (links == null) return;
+            
+            // Fix: Batch requests to avoid 414 URI Too Long error
+            Dictionary<string, string> links = new Dictionary<string, string>();
+            int batchSize = 25; // Safe size for URLs
+            for (int i = 0; i < nodeIds.Count; i += batchSize)
+            {
+                var batch = nodeIds.GetRange(i, Math.Min(batchSize, nodeIds.Count - i));
+                FigmaLog.Info($"{FigmaLog.VersionPrefix}Requesting image batch {i / batchSize + 1} ({batch.Count} nodes)...");
+                
+                var batchLinks = await apiClient.GetImageLinksAsync(_fileId, batch, scale, "png", ct);
+                if (batchLinks != null)
+                {
+                    foreach (var kv in batchLinks) links[kv.Key] = kv.Value;
+                }
+            }
+
+            if (links.Count == 0)
+            {
+                FigmaLog.Warning($"{FigmaLog.VersionPrefix}No image links received from API.");
+                return;
+            }
 
             string spriteFolder = _settings != null ? _settings.baseSpritesPath : "UI/Generated/Sprites";
+
 
             using (var semaphore = new SemaphoreSlim(10))
             {

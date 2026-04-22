@@ -85,18 +85,26 @@ namespace FigmaImporter.V2.UI
                     EditorGUILayout.LabelField("Step 1: Connection & Config", EditorStyles.boldLabel);
                     EditorGUILayout.HelpBox("Provide the Figma URL or File ID. The plugin will automatically extract the Node ID. The Access Token (PAT) is from your Figma account settings.", MessageType.None);
                     
-                    string newFileId = EditorGUILayout.TextField("Figma URL / File ID", _fileId);
-                    if (newFileId != _fileId)
+                    _useLocalJson = EditorGUILayout.Toggle("Use Local JSON", _useLocalJson);
+                    if (_useLocalJson)
                     {
-                        _fileId = ExtractFileId(newFileId);
-                        string extractedNode = ExtractNodeId(newFileId);
-                        if (!string.IsNullOrEmpty(extractedNode)) _nodeId = extractedNode;
+                        EditorGUILayout.HelpBox($"Local file: Assets/lobby_figma.json", MessageType.Info);
                     }
-                    
-                    _nodeId = EditorGUILayout.TextField("Single Node ID", _nodeId);
-                    EditorGUILayout.HelpBox("Leave empty for the whole file, or provide a specific frame ID for faster single-screen sync.", MessageType.None);
-                    
-                    _accessToken = EditorGUILayout.PasswordField("Access Token (PAT)", _accessToken);
+                    else
+                    {
+                        string newFileId = EditorGUILayout.TextField("Figma URL / File ID", _fileId);
+                        if (newFileId != _fileId)
+                        {
+                            _fileId = ExtractFileId(newFileId);
+                            string extractedNode = ExtractNodeId(newFileId);
+                            if (!string.IsNullOrEmpty(extractedNode)) _nodeId = extractedNode;
+                        }
+                        
+                        _nodeId = EditorGUILayout.TextField("Single Node ID", _nodeId);
+                        EditorGUILayout.HelpBox("Leave empty for the whole file, or provide a specific frame ID for faster single-screen sync.", MessageType.None);
+                        
+                        _accessToken = EditorGUILayout.PasswordField("Access Token (PAT)", _accessToken);
+                    }
                     _settings = (FigmaImporterSettings)EditorGUILayout.ObjectField("Importer Settings", _settings, typeof(FigmaImporterSettings), false);
 
                     if (_settings != null)
@@ -341,35 +349,14 @@ namespace FigmaImporter.V2.UI
                     FontMapTable = _fontMapping,
                     Settings = _settings,
                     DownloadImages = _downloadImages,
-                    ForceUpdate = _forceUpdate
+                    ForceUpdate = _forceUpdate,
+                    LocalJsonPath = _useLocalJson ? Path.Combine(Application.dataPath, "lobby_figma.json") : ""
                 };
-
-                string jsonContent = "";
-                
-                if (_useLocalJson)
-                {
-                    string jsonPath = Path.Combine(Application.dataPath, "lobby_figma.json");
-                    if (!File.Exists(jsonPath))
-                    {
-                        FigmaLog.Error($"{FigmaLog.VersionPrefix}Local file not found: {jsonPath}");
-                        return;
-                    }
-                    jsonContent = File.ReadAllText(jsonPath);
-                }
-                else 
-                {
-                    EditorUtility.DisplayProgressBar("Figma API", "Fetching cloud data...", 0.1f);
-                    jsonContent = await new FigmaAPIClient(_accessToken).GetFileAsync(_fileId, _nodeId, _cts.Token);
-                }
-
-                if (string.IsNullOrEmpty(jsonContent)) return;
 
                 Undo.RegisterFullObjectHierarchyUndo(_rootCanvas.gameObject, "Figma Smart Sync");
                 
-                await parser.ProcessFileAsync(jsonContent, _rootCanvas, (current, total, nodeName) => {
-                    float progress = (float)current / total;
-                    EditorUtility.DisplayProgressBar("Syncing", $"Processing node {current}/{total}: {nodeName}", progress);
-                }, _cts.Token);
+                // Use the parser's centralized sync logic which includes caching
+                await parser.RunSync(_rootCanvas, _nodeId, _cts.Token);
             }
             catch (OperationCanceledException) { FigmaLog.Warning("[FigmaImporter] Sync operation cancelled."); }
             catch (System.Exception e) { FigmaLog.Error($"[Figma API Error] {e.Message}"); }

@@ -289,7 +289,7 @@ namespace FigmaImporter.V2.Tests
             var cache = new Dictionary<string, FigmaElement> { { "keep_me", element } };
             var processed = new HashSet<string> { "keep_me" };
 
-            FigmaOrphanManager.MarkOrphans(cache, processed);
+            FigmaOrphanManager.MarkOrphans(cache, processed, false);
 
             Assert.IsTrue(go.activeSelf, "Processed element should stay active");
             Assert.IsNull(go.GetComponent<FigmaOrphanedElement>(), "Should not be marked as orphan");
@@ -299,7 +299,7 @@ namespace FigmaImporter.V2.Tests
         public void OrphanManager_NullElementInCache_Skipped()
         {
             var cache = new Dictionary<string, FigmaElement> { { "gone_id", null } };
-            Assert.DoesNotThrow(() => FigmaOrphanManager.MarkOrphans(cache, new HashSet<string>()));
+            Assert.DoesNotThrow(() => FigmaOrphanManager.MarkOrphans(cache, new HashSet<string>(), false));
         }
 
         // ========================================================

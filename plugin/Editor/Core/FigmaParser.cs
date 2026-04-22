@@ -55,43 +55,58 @@ namespace FigmaImporter.V2.Core
             };
         }
 
+        public string LocalJsonPath { get; set; }
+
         public async Task RunSync(Transform rootCanvas, string nodeId = "", CancellationToken ct = default)
         {
             if (Settings != null) FigmaLog.SetLevel(Settings.logLevel);
 
-            if (string.IsNullOrEmpty(_accessToken) || string.IsNullOrEmpty(_fileId))
+            string json = "";
+
+            if (!string.IsNullOrEmpty(LocalJsonPath) && System.IO.File.Exists(LocalJsonPath))
             {
-                FigmaLog.Error($"{FigmaLog.VersionPrefix}Cannot run Sync without Token and File ID.");
-                return;
+                FigmaLog.Info($"{FigmaLog.VersionPrefix}Loading from local file: {LocalJsonPath}");
+                json = System.IO.File.ReadAllText(LocalJsonPath);
             }
-
-            var apiClient = new FigmaAPIClient(_accessToken);
-            var cache = new FigmaResponseCache();
-
-            // Step 1: Check file version (lightweight API call)
-            EditorUtility.DisplayProgressBar("Figma API", "Checking file version...", 0.05f);
-            string version = null;
-            try { version = await apiClient.GetFileVersionAsync(_fileId, ct); }
-            catch (OperationCanceledException) { throw; }
-
-            // Step 2: Try cache
-            string json = null;
-            if (!string.IsNullOrEmpty(version))
-                json = cache.TryLoadCached(_fileId, nodeId, version);
-
-            // Step 3: If cache miss, fetch full file
-            if (string.IsNullOrEmpty(json))
+            else
             {
-                EditorUtility.DisplayProgressBar("Figma API", "Fetching cloud data...", 0.1f);
-                try { json = await apiClient.GetFileAsync(_fileId, nodeId, ct); }
+                if (string.IsNullOrEmpty(_accessToken) || string.IsNullOrEmpty(_fileId))
+                {
+                    FigmaLog.Error($"{FigmaLog.VersionPrefix}Cannot run Sync without Token and File ID.");
+                    return;
+                }
+
+                var apiClient = new FigmaAPIClient(_accessToken);
+                var cache = new FigmaResponseCache();
+
+                // Step 1: Check file version (lightweight API call)
+                EditorUtility.DisplayProgressBar("Figma API", "Checking file version...", 0.05f);
+                string version = null;
+                try { version = await apiClient.GetFileVersionAsync(_fileId, ct); }
                 catch (OperationCanceledException) { throw; }
 
-                // Save to cache for next time
-                if (!string.IsNullOrEmpty(json) && !string.IsNullOrEmpty(version))
-                    cache.SaveToCache(_fileId, nodeId, version, json);
+                // Step 2: Try cache
+                if (!string.IsNullOrEmpty(version))
+                    json = cache.TryLoadCached(_fileId, nodeId, version);
+
+                // Step 3: If cache miss, fetch full file
+                if (string.IsNullOrEmpty(json))
+                {
+                    EditorUtility.DisplayProgressBar("Figma API", "Fetching cloud data...", 0.1f);
+                    try { json = await apiClient.GetFileAsync(_fileId, nodeId, ct); }
+                    catch (OperationCanceledException) { throw; }
+
+                    // Save to cache for next time
+                    if (!string.IsNullOrEmpty(json) && !string.IsNullOrEmpty(version))
+                        cache.SaveToCache(_fileId, nodeId, version, json);
+                }
             }
 
-            if (string.IsNullOrEmpty(json)) return;
+            if (string.IsNullOrEmpty(json))
+            {
+                FigmaLog.Error($"{FigmaLog.VersionPrefix}JSON content is empty. Sync aborted.");
+                return;
+            }
 
             await ProcessFileAsync(json, rootCanvas, (current, total, name) => {
                 EditorUtility.DisplayProgressBar("Syncing", $"Processing {current}/{total}: {name}", (float)current / total);
@@ -102,11 +117,36 @@ namespace FigmaImporter.V2.Core
         {
             if (Settings != null) FigmaLog.SetLevel(Settings.logLevel);
 
-            FigmaFileResponse response = JsonConvert.DeserializeObject<FigmaFileResponse>(jsonContent);
-            if (response == null) return;
+            if (string.IsNullOrEmpty(jsonContent))
+            {
+                FigmaLog.Error($"{FigmaLog.VersionPrefix}ProcessFileAsync: jsonContent is NULL or EMPTY.");
+                return;
+            }
+
+            FigmaLog.Info($"{FigmaLog.VersionPrefix}ProcessFileAsync: Parsing JSON (length: {jsonContent.Length})...");
+            FigmaFileResponse response = null;
+            try 
+            {
+                response = JsonConvert.DeserializeObject<FigmaFileResponse>(jsonContent);
+            }
+            catch (Exception e)
+            {
+                FigmaLog.Error($"{FigmaLog.VersionPrefix}JSON Deserialization Error: {e.Message}");
+                return;
+            }
+
+            if (response == null)
+            {
+                FigmaLog.Error($"{FigmaLog.VersionPrefix}ProcessFileAsync: Deserialized response is NULL.");
+                return;
+            }
+
+            bool hasNodes = response.nodes != null && response.nodes.Count > 0;
+            bool hasDoc = response.document != null;
+            FigmaLog.Info($"{FigmaLog.VersionPrefix}Response structure: hasNodes={hasNodes}, hasDoc={hasDoc}");
 
             string importTargetName = "Canvas";
-            if (response.nodes != null && response.nodes.Count > 0)
+            if (hasNodes)
             {
                 foreach (var node in response.nodes.Values)
                 {
@@ -114,11 +154,12 @@ namespace FigmaImporter.V2.Core
                     break;
                 }
             }
-            else if (response.document != null)
+            else if (hasDoc)
             {
                 importTargetName = response.document.name;
             }
 
+            FigmaLog.Info($"{FigmaLog.VersionPrefix}Target Name: {importTargetName}");
             _auditReport = new TransformAuditReport();
             _deferredMasks = new List<(FigmaNode, FigmaElement, int)>();
             _processedIds = new HashSet<string>();
@@ -189,7 +230,11 @@ namespace FigmaImporter.V2.Core
                 if (response.nodes != null) foreach (var container in response.nodes.Values) topNodes.Add(container.document);
                 else if (response.document != null) topNodes.Add(response.document);
 
-                if (topNodes.Count == 0) return;
+                if (topNodes.Count == 0)
+                {
+                    FigmaLog.Error("[FigmaParser] No valid nodes found to import. Check if your Node ID is correct or if the file is empty.");
+                    return;
+                }
 
                 if (topNodes[0].absoluteBoundingBox != null)
                 {

@@ -75,6 +75,9 @@ namespace FigmaImporter.V2.Core
                 while (!op.isDone) { if (ct.IsCancellationRequested) { request.Abort(); throw new OperationCanceledException(); } await Task.Yield(); }
 
                 if (request.result == UnityWebRequest.Result.Success) return request.downloadHandler.text;
+
+                string errorMsg = $"[Figma API Error] {request.responseCode} {request.error}\nURL: {url}";
+                FigmaLog.Error(errorMsg);
                 return null;
             }
         }

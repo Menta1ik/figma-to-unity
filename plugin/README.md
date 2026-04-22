@@ -1,4 +1,4 @@
-# Antigravity Figma Importer v2.7.10 (UPM)
+# Antigravity Figma Importer v2.8.0 (UPM)
 
 Мощный инструмент для профессионального импорта UI из Figma в Unity с поддержкой **Smart Sync**, автоматизацией префабов и неразрушающим обновлением.
 
@@ -12,10 +12,21 @@
 1. Откройте ваш проект Unity.
 2. Перейдите в `Window -> Package Manager`.
 3. Нажмите `+` -> **"Add package from git URL..."**.
-4. Вставьте ссылку: `https://github.com/Menta1ik/figma-to-unity.git?path=/plugin#v2.7.10`
+4. Вставьте ссылку: `https://github.com/Menta1ik/figma-to-unity.git?path=/plugin#v2.8.0`
 
-### Вариант B: Локальная установка
-Выберите файл `package.json` внутри папки `plugin`.
+---
+
+## ⚡ Новое в v2.8.0 — Production Stability
+
+*   **BATCHING ENGINE**: Внедрена система порционной загрузки изображений. Ошибка **414 URI Too Long** устранена.
+*   **OFFLINE MODE**: Полноценная поддержка "Use Local JSON" для импорта из `Assets/lobby_figma.json`.
+*   **Improved Diagnostics**: Вывод сетевых ошибок (401, 404, 414) с пояснениями.
+*   **Clean Orchestration**: Устранение дублирования логики («Double Brain»).
+
+### Ранее в v2.7.0 — Architecture Decomposition
+*   **Модульная архитектура**: FigmaParser разделен на 6 специализированных классов (TreeWalker, MaskResolver, OrphanManager и др.).
+*   **Кеширование ответов API**: Хранение JSON-ответов в `Library/FigmaCache/`.
+*   **58 Юнит-тестов**: Покрытие логики парсера выросло до 87%.
 
 ---
 
@@ -31,19 +42,6 @@
 4.  **Запустить синхронизацию**: 
     *   Нажмите зеленую кнопку **RUN FULL SYNC**.
 5.  **Получить префаб**: Система автоматически создаст или обновит префаб в папке, указанной в настройках.
-
----
-
-## 🛠 Новое в v2.7.10 — UI Stability & UPM Fix
-
-*   **Полная стабилизация IMGUI**: Ошибки `Invalid GUILayout state` устранены во всех редакторских окнах через внедрение Scopes (`VerticalScope`, `HorizontalScope`, `ScrollViewScope`).
-*   **Исправлен авто-апдейт**: Метод обновления плагина в один клик теперь корректно находит директорию пакета в GitHub.
-*   **Ребрендинг**: Проект полностью переименован в **Antigravity Figma Importer**.
-
-### Ранее в v2.7.0 — Architecture Decomposition & API Caching
-*   **Модульная архитектура**: FigmaParser разделен на 6 специализированных классов (TreeWalker, MaskResolver, OrphanManager и др.).
-*   **Кеширование ответов API**: Хранение JSON-ответов в `Library/FigmaCache/`. Моментальный повторный синк при отсутствии правок в Figma.
-*   **58 Юнит-тестов**: Покрытие логики парсера выросло до 87%.
 
 ---
 
