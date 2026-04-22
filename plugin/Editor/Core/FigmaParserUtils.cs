@@ -20,7 +20,6 @@ namespace FigmaImporter.V2.Core
                 if (root != null)
                 {
                     PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
-                    FigmaLog.Debug($"[Figma Utils] Unpacked prefab instance for: {go.name}");
                 }
             }
         }
