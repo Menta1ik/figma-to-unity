@@ -59,13 +59,21 @@ namespace FigmaImporter.V2.Core
             onProgress?.Invoke(current, total, node.name);
 
             FigmaElement element = null;
-            if (_existingCache != null && _existingCache.ContainsKey(node.id))
+            if (_existingCache != null && _existingCache.TryGetValue(node.id, out var cachedElement))
             {
-                element = _existingCache[node.id];
-                element.transform.SetParent(parent, false);
-                UpdatedCount++;
+                if (cachedElement != null)
+                {
+                    element = cachedElement;
+                    element.transform.SetParent(parent, false);
+                    UpdatedCount++;
+                }
+                else
+                {
+                    _existingCache.Remove(node.id);
+                }
             }
-            else
+
+            if (element == null)
             {
                 FigmaParserUtils.EnsureUnpacked(parent.gameObject);
                 GameObject go = new GameObject(node.name);

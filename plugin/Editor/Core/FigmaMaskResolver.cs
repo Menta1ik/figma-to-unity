@@ -32,13 +32,31 @@ namespace FigmaImporter.V2.Core
                         var children = new List<Transform>();
                         foreach (Transform child in rt) children.Add(child);
 
+                        bool allReparented = true;
                         foreach (Transform child in children)
                         {
                             child.SetParent(parent, true);
+                            if (child.parent != parent)
+                            {
+                                allReparented = false;
+                                break;
+                            }
                             child.SetSiblingIndex(siblingIndex++);
                         }
+
+                        if (allReparented)
+                        {
+                            Object.DestroyImmediate(rt.gameObject);
+                        }
+                        else
+                        {
+                            FigmaLog.Warning($"Could not dismantle mask {rt.name} - children could not be reparented (likely a locked prefab instance).");
+                        }
                     }
-                    Object.DestroyImmediate(rt.gameObject);
+                    else
+                    {
+                        Object.DestroyImmediate(rt.gameObject);
+                    }
                 }
             }
         }

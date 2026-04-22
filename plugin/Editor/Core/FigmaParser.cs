@@ -149,12 +149,16 @@ namespace FigmaImporter.V2.Core
                 return;
             }
 
-            var allElements = rootCanvas.GetComponentsInChildren<FigmaElement>(true);
             FigmaParserUtils.EnsureUnpacked(rootCanvas.gameObject);
             _handlerContext.RootTransform = rootCanvas;
-            _existingCache = allElements.Where(e => !string.IsNullOrEmpty(e.FigmaNodeId)).ToDictionary(e => e.FigmaNodeId, e => e);
-
+            
             FigmaMaskResolver.DismantleAll(rootCanvas);
+
+            // Re-fetch elements after dismantling masks to have a clean slate for existing objects
+            var allElements = rootCanvas.GetComponentsInChildren<FigmaElement>(true);
+            _existingCache = allElements
+                .Where(e => e != null && !string.IsNullOrEmpty(e.FigmaNodeId))
+                .ToDictionary(e => e.FigmaNodeId, e => e);
 
             Canvas canvas = rootCanvas.GetComponent<Canvas>();
             CanvasScaler scaler = rootCanvas.GetComponent<CanvasScaler>();
