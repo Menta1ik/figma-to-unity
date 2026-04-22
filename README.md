@@ -1,4 +1,4 @@
-# 🌌 Figma to Unity Importer v2.7.1
+# 🌌 Figma to Unity Importer v2.7.2
 
 **Figma-to-Unity Pipeline** — профессиональный инструмент для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity uGUI. Плагин использует неразрушающую архитектуру **Smart Sync**, позволяя обновлять UI из Figma без потери ваших изменений (скриптов, анимаций) в Unity.
 
@@ -11,7 +11,7 @@
 1. Откройте **Window -> Package Manager** в Unity.
 2. Нажмите **+** -> **Add package from git URL...**.
 3. Вставьте ссылку:
-   `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.7.1`
+   `https://github.com/Menta1ik/figma-to-unity.git?path=plugin#v2.7.2`
 
 ---
 
@@ -24,7 +24,15 @@
 
 ---
 
-## 🛠 Ключевые особенности v2.7.0
+## 🛠 Ключевые особенности v2.7.2 (Hotfix)
+
+### Новое в v2.7.2 — Prefab Stability & Auto-Update
+- **Исправление блокировки префабов**: Устранена критическая ошибка `Setting the parent of a transform which resides in a Prefab instance is not possible`. Теперь плагин безопасно распаковывает иерархию перед синхронизацией.
+- **Кнопка авто-обновления**: В окно импорта возвращена кнопка **"Update Plugin to Latest (GitHub)"**, позволяющая обновлять инструмент в один клик напрямую из репозитория.
+
+### Новое в v2.7.1 — Core Hardening
+- **Nested Prefab Protection**: `FigmaMaskResolver` теперь защищает вложенные объекты от случайного удаления при демонтаже масок.
+- **MissingReference Guard**: Добавлены автоматические проверки на битые ссылки в кэше.
 
 ### Новое в v2.7.0 — Architecture Decomposition & API Caching
 - **Модульная архитектура**: FigmaParser декомпозирован из God Object (647 строк) в 6 фокусированных классов (-45% строк). Каждый класс — одна ответственность.
