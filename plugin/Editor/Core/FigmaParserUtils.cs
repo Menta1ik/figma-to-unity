@@ -12,14 +12,28 @@ namespace FigmaImporter.V2.Core
         {
             if (go == null) return;
             
-            // Check if object is part of any prefab instance
+            // If the object itself is a prefab instance, unpack it
             if (PrefabUtility.IsPartOfPrefabInstance(go))
             {
-                // Get the outermost instance root to safely unpack
                 GameObject root = PrefabUtility.GetNearestPrefabInstanceRoot(go);
                 if (root != null)
                 {
                     PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+                }
+            }
+
+            // Also search for any nested prefab instances within the hierarchy and unpack them
+            var instances = go.GetComponentsInChildren<Transform>(true)
+                .Where(t => PrefabUtility.IsPartOfPrefabInstance(t.gameObject))
+                .Select(t => PrefabUtility.GetNearestPrefabInstanceRoot(t.gameObject))
+                .Distinct()
+                .ToList();
+
+            foreach (var inst in instances)
+            {
+                if (inst != null)
+                {
+                    PrefabUtility.UnpackPrefabInstance(inst, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
                 }
             }
         }

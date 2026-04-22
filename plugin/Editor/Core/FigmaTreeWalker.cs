@@ -64,12 +64,10 @@ namespace FigmaImporter.V2.Core
                 if (cachedElement != null)
                 {
                     element = cachedElement;
-                    
-                    FigmaParserUtils.EnsureUnpacked(element.gameObject);
-                    FigmaParserUtils.EnsureUnpacked(parent.gameObject);
-                    
+                    element.gameObject.SetActive(true); // Force active if reused
                     element.transform.SetParent(parent, false);
                     UpdatedCount++;
+                    FigmaLog.Verbose($"{FigmaLog.VersionPrefix}Reusing object: {element.name} ({node.id})");
                 }
                 else
                 {
@@ -79,13 +77,13 @@ namespace FigmaImporter.V2.Core
 
             if (element == null)
             {
-                FigmaParserUtils.EnsureUnpacked(parent.gameObject);
                 GameObject go = new GameObject(node.name);
                 go.transform.SetParent(parent, false);
                 element = go.AddComponent<FigmaElement>();
                 if (go.GetComponent<RectTransform>() == null) go.AddComponent<RectTransform>();
                 element.FigmaNodeId = node.id;
                 CreatedCount++;
+                FigmaLog.Verbose($"{FigmaLog.VersionPrefix}Created new object: {node.name} ({node.id})");
             }
 
             _processedIds.Add(node.id);

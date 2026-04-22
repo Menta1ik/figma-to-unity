@@ -1,4 +1,4 @@
-# 🌌 Antigravity Figma Importer v2.7.8
+# 🌌 Antigravity Figma Importer v2.7.9
 
 **Antigravity Figma Importer** — профессиональный инструмент для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity uGUI. Плагин использует неразрушающую архитектуру **Smart Sync**, позволяя обновлять UI из Figma без потери ваших изменений (скриптов, анимаций) в Unity.
 
@@ -11,7 +11,7 @@
 1. Откройте **Window -> Package Manager** в Unity.
 2. Нажмите **+** -> **Add package from git URL...**.
 3. Вставьте ссылку:
-   `https://github.com/Menta1ik/figma-to-unity.git?path=/plugin#v2.7.8`
+   `https://github.com/Menta1ik/figma-to-unity.git?path=/plugin#v2.7.9`
 
 ---
 
@@ -24,14 +24,14 @@
 
 ---
 
-## 🛠 Ключевые особенности v2.7.8 (Stability Update)
+## 🛠 Ключевые особенности v2.7.9 (Stability Update)
 
-### Новое в v2.7.8 — UI Stability & UPM Fix
+### Новое в v2.7.9 — UI Stability & UPM Fix
 - **Стабилизация OnGUI**: Весь интерфейс переведен на `EditorGUILayout.VerticalScope` и `HorizontalScope`. Ошибки `Invalid GUILayout state` и разбалансировка стека IMGUI полностью устранены.
 - **Исправление UPM Update**: Скорректирован путь в методе автоматического обновления (`?path=/plugin`). Теперь кнопка "Update" в окне импорта работает корректно в Unity 2021.3+.
 - **Глобальный ребрендинг**: Проект официально переименован в **Antigravity Figma Importer**.
 
-### Новое в v2.7.8 — Prefab Stability
+### Новое в v2.7.9 — Prefab Stability
 - **Исправление блокировки префабов**: Устранена критическая ошибка `Setting the parent of a transform which resides in a Prefab instance is not possible`. Теперь плагин безопасно распаковывает иерархию перед синхронизацией.
 
 ### Новое в v2.7.0 — Architecture Decomposition & API Caching
