@@ -1,4 +1,4 @@
-# 🌌 Antigravity Figma Importer v2.8.0
+# 🌌 Figma to Unity Importer v2.8.0
 
 **Antigravity Figma Importer** — профессиональный инструмент для «пиксель-в-пиксель» переноса интерфейсов из Figma в Unity uGUI. Плагин использует неразрушающую архитектуру **Smart Sync**, позволяя обновлять UI из Figma без потери ваших изменений (скриптов, анимаций) в Unity.
 
