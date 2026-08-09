@@ -5,6 +5,7 @@
 !/plugin/
 !.gitignore
 !README.md
+!LICENSE
 
 # --- Unity General patterns (apply to plugin subfolder) ---
 **/[Ll]ibrary/

@@ -4,6 +4,7 @@
   "displayName": "Figma Importer V2",
   "description": "Figma to Unity UI Pipeline with Non-Destructive Update architecture. Modular parser, API response caching.",
   "unity": "2021.3",
+  "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
     "url": "https://github.com/Menta1ik/figma-to-unity.git",
