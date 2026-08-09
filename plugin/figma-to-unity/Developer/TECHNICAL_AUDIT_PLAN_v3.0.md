@@ -100,6 +100,8 @@
 
 ## 🔍 Сравнение с UnityFigmaBridge (simonoliver/UnityFigmaBridge)
 
+Репозиторий: [github.com/simonoliver/UnityFigmaBridge](https://github.com/simonoliver/UnityFigmaBridge)
+
 Аналог в той же нише (562 звезды, активно поддерживается). Разобрал README, CHANGELOG и код (`Editor/FigmaApi`, `Editor/PrototypeFlow`, `Editor/Nodes`) на предмет полезных для нас идей.
 
 ### Что у них есть, а у нас нет (по значимости)
